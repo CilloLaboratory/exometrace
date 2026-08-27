@@ -1,0 +1,34 @@
+reference:
+  build: GRCh38
+  contig_style: chr
+  root: references/GRCh38
+  fasta: references/GRCh38/fasta/GRCh38.fa
+  fasta_index: references/GRCh38/fasta/GRCh38.fa.fai
+  sequence_dictionary: references/GRCh38/fasta/GRCh38.dict
+  bwa_index_prefix: references/GRCh38/fasta/GRCh38.fa
+
+intervals:
+  targets_bed: references/GRCh38/intervals/exome_targets.bed
+  interval_list: references/GRCh38/intervals/exome_targets.interval_list
+  callable_regions: references/GRCh38/intervals/callable_regions.bed
+
+gatk:
+  germline_resource: references/GRCh38/gatk/af-only-gnomad.vcf.gz
+  common_snps: references/GRCh38/gatk/common_biallelic_snps.vcf.gz
+  panel_of_normals: references/GRCh38/gatk/panel_of_normals.vcf.gz
+
+cfsnv:
+  blocked_positions_vcf: references/GRCh38/cfsnv/blocked_positions.vcf.gz
+  blocked_positions_index: references/GRCh38/cfsnv/blocked_positions.vcf.gz.tbi
+
+vep:
+  cache_dir: references/GRCh38/vep/cache
+
+sigprofiler:
+  volume_dir: references/GRCh38/sigprofiler
+
+annotations:
+  cancer_gene_census: references/GRCh38/annotations/cancer_gene_census.tsv
+  hotspots: references/GRCh38/annotations/hotspots.tsv
+  gene_coordinates: references/GRCh38/annotations/gene_coordinates.tsv
+  chromosome_arms: references/GRCh38/annotations/chromosome_arms.bed

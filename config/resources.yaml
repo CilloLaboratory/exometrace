@@ -1,0 +1,27 @@
+resource_classes:
+  cpu_small:
+    cpus: 2
+    memory_gb: 8
+    time: "2h"
+
+  cpu_medium:
+    cpus: 8
+    memory_gb: 32
+    time: "8h"
+
+  cpu_large:
+    cpus: 16
+    memory_gb: 64
+    time: "24h"
+
+  cpu_highmem:
+    cpus: 16
+    memory_gb: 128
+    time: "24h"
+
+  gpu_single:
+    cpus: 8
+    memory_gb: 32
+    gpus: 1
+    gpu_type: NVIDIA
+    time: "12h"

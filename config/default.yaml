@@ -1,0 +1,118 @@
+project:
+  name: tumor_normal_wes
+  implementation_date: 2026-08-19
+  workflow_engine: nextflow
+  workflow_engine_version: pinned-by-environment
+
+analysis:
+  mode: tumor_normal_wes
+
+input:
+  type: fastq
+  samplesheet: samplesheet.csv
+
+reference:
+  build: GRCh38
+  contig_style: chr
+
+alignment:
+  aligner: bwa-mem2
+  threads: 16
+
+somatic:
+  primary_caller: deepsomatic
+  orthogonal_caller: mutect2
+  use_consensus_only: false
+
+deepvariant:
+  enabled: true
+  prefer_gpu: true
+  model_type: WES
+
+deepsomatic:
+  enabled: true
+  prefer_gpu: true
+  model_type_default: WES_TUMOR_NORMAL
+  ffpe_model_if_available: true
+
+copy_number:
+  caller: facets
+  purity_ploidy:
+    enabled: true
+    method: facets
+    default_purity: null
+    default_ploidy: 2
+    facets:
+      cval: 150
+      ndepth: 35
+      ndepthmax: 1000
+  arm_thresholds:
+    deep_deletion_log2: -1.1
+    loss_log2: -0.3
+    gain_log2: 0.2
+    amplification_log2: 0.7
+
+annotation:
+  vep: true
+
+qc:
+  tumor:
+    min_mean_target_coverage: 80
+    min_pct_target_20x: 0.90
+  normal:
+    min_mean_target_coverage: 40
+    min_pct_target_20x: 0.90
+  max_duplicate_rate: 0.50
+  min_mapping_rate: 0.95
+
+callable:
+  tumor_min_depth: 20
+  normal_min_depth: 10
+  min_mapping_quality: 20
+  min_base_quality: 20
+
+tmb:
+  enabled: true
+  sample_specific_callable_denominator: true
+  include:
+    - Missense_Mutation
+    - Nonsense_Mutation
+    - Frame_Shift_Del
+    - Frame_Shift_Ins
+    - In_Frame_Del
+    - In_Frame_Ins
+    - Splice_Site
+
+signatures:
+  enabled: true
+  context_type: "96"
+  cosmic_version: 3.6
+  exome: true
+  make_plots: false
+  sample_reconstruction_plots: none
+  min_mutations_for_qc_pass: 50
+  volume: null
+
+clonality:
+  enabled: true
+  clonal_ccf_threshold: 0.9
+
+reporting:
+  multiqc: true
+  execution_report: true
+
+ctdna:
+  umi:
+    read_structure_r1: 3M3S+T
+    read_structure_r2: 3M3S+T
+    tag_name: RX
+    consensus:
+      min_family_size: 2
+      error_rate_pre_umi: 45
+      error_rate_post_umi: 30
+  cfsnv:
+    min_hold: 2
+    min_pass: 3
+  outputs:
+    emit_high_sensitivity: true
+    emit_high_confidence: true

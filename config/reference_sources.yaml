@@ -1,0 +1,68 @@
+metadata:
+  bundle_name: broad_grch38_wes
+  pinned_on: 2026-08-20
+  notes:
+    - "URLs were pinned from official Broad, Ensembl, and SigProfiler upstream sources."
+    - "The panel of normals and germline resource use Broad/GATK public somatic hg38 resources."
+    - "The common biallelic SNP set is derived locally from the germline resource for contamination modeling."
+    - "Assay intervals and workflow annotation tables are user-supplied because they are site- and use-case-specific."
+
+reference:
+  build: GRCh38
+  contig_style: chr
+
+assets:
+  fasta:
+    url: "https://storage.googleapis.com/gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta"
+    path: "references/GRCh38/fasta/GRCh38.fa"
+  fasta_index:
+    url: "https://storage.googleapis.com/gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.fai"
+    path: "references/GRCh38/fasta/GRCh38.fa.fai"
+  sequence_dictionary:
+    url: "https://storage.googleapis.com/gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.dict"
+    path: "references/GRCh38/fasta/GRCh38.dict"
+  germline_resource:
+    url: "https://storage.googleapis.com/gatk-best-practices/somatic-hg38/af-only-gnomad.hg38.vcf.gz"
+    path: "references/GRCh38/gatk/af-only-gnomad.vcf.gz"
+  panel_of_normals:
+    url: "https://storage.googleapis.com/gatk-best-practices/somatic-hg38/1000g_pon.hg38.vcf.gz"
+    path: "references/GRCh38/gatk/panel_of_normals.vcf.gz"
+  vep_cache:
+    url: "https://ftp.ensembl.org/pub/release-116/variation/indexed_vep_cache/homo_sapiens_vep_116_GRCh38.tar.gz"
+    path: "references/GRCh38/vep/cache"
+    archive_name: "homo_sapiens_vep_116_GRCh38.tar.gz"
+manual_inputs:
+  intervals:
+    targets_bed:
+      path: "references/GRCh38/intervals/exome_targets.bed"
+      description: "Capture-kit BED matching the assay in the sample sheet."
+    interval_list:
+      path: "references/GRCh38/intervals/exome_targets.interval_list"
+      description: "Picard/GATK interval list matching the target BED and reference contigs."
+    callable_regions:
+      path: "references/GRCh38/intervals/callable_regions.bed"
+      description: "Callable regions BED; if omitted, bootstrap may copy the target BED."
+  annotations:
+    cancer_gene_census:
+      path: "references/GRCh38/annotations/cancer_gene_census.tsv"
+      description: "Real Cancer Gene Census-style table used for driver annotation."
+    hotspots:
+      path: "references/GRCh38/annotations/hotspots.tsv"
+      description: "Real hotspot table with gene and protein_change columns."
+    gene_coordinates:
+      path: "references/GRCh38/annotations/gene_coordinates.tsv"
+      description: "Real gene coordinate table with gene/chrom/start/end columns."
+    chromosome_arms:
+      path: "references/GRCh38/annotations/chromosome_arms.bed"
+      description: "Chromosome arm BED matching the chosen contig convention."
+
+derived:
+  bwa_mem2_index:
+    prefix: "references/GRCh38/fasta/GRCh38.fa"
+  common_biallelic_snps:
+    source_vcf: "references/GRCh38/gatk/af-only-gnomad.vcf.gz"
+    path: "references/GRCh38/gatk/common_biallelic_snps.vcf.gz"
+    min_af: 0.01
+  sigprofiler:
+    genome_build: "GRCh38"
+    volume_dir: "references/GRCh38/sigprofiler"

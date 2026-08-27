@@ -1,0 +1,106 @@
+metadata:
+  pinned_on: 2026-08-19
+  source_policy: upstream official release pages or official documentation
+
+tools:
+  qc_suite:
+    version: "2026.08"
+    source: "local build from FastQC, samtools, mosdepth, Picard"
+    image: "oras://ghcr.io/example/qc_suite:2026.08"
+    sif: "containers/sif/qc_suite_2026.08.sif"
+
+  bwa_mem2:
+    version: "2.3"
+    source: "https://github.com/bwa-mem2/bwa-mem2/releases"
+    image: "oras://ghcr.io/example/bwa-mem2:2.3"
+    sif: "containers/sif/bwa_mem2_2.3.sif"
+
+  bwa_mem2_samtools:
+    version: "2.3+1.23"
+    source: "local SIF built from qc_suite_2026.08.sif plus bwa_mem2_2.3.sif"
+    image: "local://bwa_mem2_samtools_2.3.sif"
+    sif: "containers/sif/bwa_mem2_samtools_2.3.sif"
+
+  fastqc:
+    version: "0.12.1"
+    source: "https://github.com/s-andrews/FastQC"
+    image: "oras://ghcr.io/example/fastqc:0.12.1"
+    sif: "containers/sif/qc_0.12.1.sif"
+
+  samtools:
+    version: "1.23"
+    source: "https://github.com/samtools/samtools/releases"
+    image: "oras://ghcr.io/example/samtools:1.23"
+    sif: "containers/sif/qc_1.23.sif"
+
+  mosdepth:
+    version: "0.3.11"
+    source: "https://github.com/brentp/mosdepth"
+    image: "oras://ghcr.io/example/mosdepth:0.3.11"
+    sif: "containers/sif/qc_0.3.11.sif"
+
+  gatk:
+    version: "4.7.0.0"
+    source: "https://github.com/broadinstitute/gatk/releases"
+    image: "docker://broadinstitute/gatk:4.7.0.0"
+    sif: "containers/sif/gatk_4.7.0.0.sif"
+
+  cfsnv:
+    version: "1.0"
+    source: "https://github.com/jasminezhoulab/cfSNV"
+    image: "docker://ghcr.io/example/cfsnv:1.0"
+    sif: "containers/sif/cfsnv_1.0.sif"
+
+  umi_consensus:
+    version: "1.5.1"
+    source: "https://github.com/fulcrumgenomics/fgbio"
+    image: "docker://ghcr.io/example/umi_consensus:1.5.1"
+    sif: "containers/sif/umi_consensus_1.5.1.sif"
+
+  deepvariant_cpu:
+    version: "1.10.0"
+    source: "https://github.com/google/deepvariant/releases"
+    image: "docker://google/deepvariant:1.10.0"
+    sif: "containers/sif/deepvariant_1.10.0.sif"
+
+  deepvariant_gpu:
+    version: "1.10.0"
+    source: "https://github.com/google/deepvariant/releases"
+    image: "docker://google/deepvariant:1.10.0-gpu"
+    sif: "containers/sif/deepvariant_1.10.0_gpu.sif"
+
+  deepsomatic_cpu:
+    version: "1.10.0"
+    source: "https://github.com/google/deepsomatic/releases"
+    image: "docker://google/deepsomatic:1.10.0"
+    sif: "containers/sif/deepsomatic_1.10.0.sif"
+
+  deepsomatic_gpu:
+    version: "1.10.0"
+    source: "https://github.com/google/deepsomatic/releases"
+    image: "docker://google/deepsomatic:1.10.0-gpu"
+    sif: "containers/sif/deepsomatic_1.10.0_gpu.sif"
+
+  cnvkit:
+    version: "0.9.14"
+    source: "https://github.com/etal/cnvkit/releases"
+    image: "docker://etal/cnvkit:0.9.14"
+    sif: "containers/sif/cnvkit_0.9.14.sif"
+
+  vep:
+    version: "116.0"
+    source: "https://github.com/Ensembl/ensembl-vep/releases"
+    image: "docker://ensemblorg/ensembl-vep:release_116.0"
+    sif: "containers/sif/vep_116.0.sif"
+
+  sigprofiler:
+    version: "1.1.5"
+    source: "https://github.com/SigProfilerSuite/SigProfilerAssignment"
+    image: "oras://ghcr.io/example/sigprofiler:1.1.5"
+    sif: "containers/sif/sigprofiler_1.1.5.sif"
+
+  facets_suite:
+    version: "0.6.2"
+    source: "https://github.com/mskcc/facets-suite"
+    image: "docker://philipjonsson/facets-suite:dev"
+    sif: "containers/sif/facets_suite_0.6.2.sif"

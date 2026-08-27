@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+export JAVA_HOME="${repo_dir}/.conda-nextflow"
+export PATH="${JAVA_HOME}/bin:${PATH}"
+export NXF_HOME="${repo_dir}/.nextflow"
+
+mkdir -p "${NXF_HOME}"
+
+exec "${repo_dir}/.conda-nextflow/bin/nextflow" "$@"

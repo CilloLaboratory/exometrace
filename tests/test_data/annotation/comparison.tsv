@@ -1,0 +1,2 @@
+CHROM	POS	REF	ALT	deepsomatic	mutect2	deepsomatic_filter	mutect2_filter
+chr1	5	A	T	1	1	PASS	PASS

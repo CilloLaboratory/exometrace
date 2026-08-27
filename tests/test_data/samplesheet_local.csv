@@ -1,0 +1,2 @@
+patient_id,tumor_sample,normal_sample,tumor_r1,tumor_r2,normal_r1,normal_r2,bait_bed,sex
+P001,P001_T,P001_N,fastq/P001_T_R1.fastq.gz,fastq/P001_T_R2.fastq.gz,fastq/P001_N_R1.fastq.gz,fastq/P001_N_R2.fastq.gz,refs/GRCh38/intervals/exome_targets.bed,F

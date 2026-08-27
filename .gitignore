@@ -13,7 +13,9 @@ __pycache__/
 .DS_Store
 results/**
 !results/.gitkeep
+logs/
 references/**
 !references/.gitkeep
 containers/sif/**
 !containers/sif/.gitkeep
+containers/sandbox_local/

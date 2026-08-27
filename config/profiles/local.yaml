@@ -1,0 +1,5 @@
+executor: local
+singularity:
+  enabled: true
+apptainer:
+  enabled: true
