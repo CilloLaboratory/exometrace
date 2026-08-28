@@ -10,7 +10,11 @@ process UMI_GROUP_CONSENSUS {
     tuple val(meta), path("${meta.sample_id}.consensus.bam"), path("${meta.sample_id}.consensus.bam.bai"), path("${meta.sample_id}.umi_qc.tsv"), path(bait_bed), val(reference_config)
 
     script:
+    def fgbio_heap_gb = Math.max(2, task.memory.toGiga().intValue() - 4)
     """
+    export JAVA_TOOL_OPTIONS="-Xms1g -Xmx${fgbio_heap_gb}g"
+    mkdir -p tmp
+    export TMPDIR="$PWD/tmp"
     fgbio AnnotateBamWithUmis \
       --input=${bam} \
       --fastq=${r1} \

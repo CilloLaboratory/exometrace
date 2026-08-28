@@ -158,6 +158,12 @@ class CtDnaWorkflowShapeTests(unittest.TestCase):
         self.assertIn('gatk --java-options "-Xms1g -Xmx${gatk_heap_gb}g" CollectAlignmentSummaryMetrics', alignment_qc_text)
         self.assertIn('gatk --java-options "-Xms1g -Xmx${gatk_heap_gb}g" MarkDuplicates', markduplicates_text)
 
+    def test_umi_consensus_sets_explicit_java_heap(self) -> None:
+        module_text = (REPO_ROOT / "modules" / "umi_consensus" / "main.nf").read_text(encoding="utf-8")
+        self.assertIn('def fgbio_heap_gb = Math.max(2, task.memory.toGiga().intValue() - 4)', module_text)
+        self.assertIn('export JAVA_TOOL_OPTIONS="-Xms1g -Xmx${fgbio_heap_gb}g"', module_text)
+        self.assertIn('export TMPDIR="$PWD/tmp"', module_text)
+
 
 if __name__ == "__main__":
     unittest.main()
