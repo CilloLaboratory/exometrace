@@ -77,33 +77,32 @@ class CtDnaWorkflowShapeTests(unittest.TestCase):
 
     def test_consensus_module_extracts_umis_with_both_read_structures(self) -> None:
         module_text = (REPO_ROOT / "modules" / "umi_consensus" / "main.nf").read_text(encoding="utf-8")
-        self.assertIn("fgbio AnnotateBamWithUmis", module_text)
-        self.assertIn("--fastq=${r1}", module_text)
-        self.assertIn("--fastq=${r2}", module_text)
-        self.assertIn("--read-structure=${read_structure_r1}", module_text)
-        self.assertIn("--read-structure=${read_structure_r2}", module_text)
+        self.assertIn("fgbio FastqToBam", module_text)
+        self.assertIn("--read-structures ${read_structure_r1} ${read_structure_r2}", module_text)
+        self.assertIn("fgbio ZipperBams", module_text)
+        self.assertIn("--tags-to-reverse Consensus", module_text)
+        self.assertIn("--tags-to-revcomp Consensus", module_text)
         self.assertIn("read_structure_r1", module_text)
         self.assertIn("read_structure_r2", module_text)
 
     def test_main_routes_trimmed_fastqs_only_to_cfsnv_path(self) -> None:
         workflow_text = (REPO_ROOT / "main.nf").read_text(encoding="utf-8")
         self.assertIn("template_trimmed = UMI_TEMPLATE_TRIM", workflow_text)
-        self.assertIn("ctdna_align_inputs = fastqc_results.map", workflow_text)
-        self.assertIn("consensus_inputs = ctdna_aligned.map", workflow_text)
+        self.assertIn("consensus_inputs = fastqc_results.map", workflow_text)
         self.assertIn("ctdna_read_structure_r1", workflow_text)
         self.assertIn("ctdna_read_structure_r2", workflow_text)
-        self.assertIn("tuple(meta, bam, bai, r1, r2, bait_bed, ref_cfg", workflow_text)
+        self.assertIn("tuple(meta, r1, r2, bait_bed, reference_path.toString(), reference_fasta_path, reference_fasta_index_path, reference_fasta_dict_path", workflow_text)
 
     def test_bwa_alignment_stages_reference_sidecars(self) -> None:
         workflow_text = (REPO_ROOT / "main.nf").read_text(encoding="utf-8")
         align_module_text = (REPO_ROOT / "modules" / "align" / "main.nf").read_text(encoding="utf-8")
-        ctdna_align_module_text = (REPO_ROOT / "modules" / "ctdna_align" / "main.nf").read_text(encoding="utf-8")
+        consensus_module_text = (REPO_ROOT / "modules" / "umi_consensus" / "main.nf").read_text(encoding="utf-8")
 
         self.assertIn('reference_fasta_path = file(reference_fasta, checkIfExists: true)', workflow_text)
         self.assertIn('reference_bwa_index_bwt = file("${reference_fasta}.bwt.2bit.64", checkIfExists: true)', workflow_text)
         self.assertIn('tuple(meta, r1, r2, bait_bed, reference_path.toString(), reference_fasta_path, reference_bwa_index_0123, reference_bwa_index_amb, reference_bwa_index_ann, reference_bwa_index_bwt, reference_bwa_index_pac)', workflow_text)
         self.assertIn('path(ref_fasta), path(ref_fasta_0123), path(ref_fasta_amb), path(ref_fasta_ann), path(ref_fasta_bwt), path(ref_fasta_pac)', align_module_text)
-        self.assertIn('path(ref_fasta), path(ref_fasta_0123), path(ref_fasta_amb), path(ref_fasta_ann), path(ref_fasta_bwt), path(ref_fasta_pac)', ctdna_align_module_text)
+        self.assertIn('path(ref_fasta), path(ref_fasta_fai), path(ref_fasta_dict), path(ref_fasta_0123), path(ref_fasta_amb), path(ref_fasta_ann), path(ref_fasta_bwt), path(ref_fasta_pac)', consensus_module_text)
 
     def test_deepvariant_and_deepsomatic_stage_reference_fasta_index(self) -> None:
         workflow_text = (REPO_ROOT / "main.nf").read_text(encoding="utf-8")
@@ -160,9 +159,21 @@ class CtDnaWorkflowShapeTests(unittest.TestCase):
 
     def test_umi_consensus_sets_explicit_java_heap(self) -> None:
         module_text = (REPO_ROOT / "modules" / "umi_consensus" / "main.nf").read_text(encoding="utf-8")
-        self.assertIn('def fgbio_heap_gb = Math.max(2, task.memory.toGiga().intValue() - 4)', module_text)
+        self.assertIn('def fgbio_heap_gb = Math.max(4, task.memory.toGiga().intValue() - 4)', module_text)
         self.assertIn('export JAVA_TOOL_OPTIONS="-Xms1g -Xmx${fgbio_heap_gb}g"', module_text)
-        self.assertIn('export TMPDIR="$PWD/tmp"', module_text)
+        self.assertIn('export TMPDIR="\\$PWD/tmp"', module_text)
+
+    def test_umi_consensus_uses_ubam_pipeline(self) -> None:
+        module_text = (REPO_ROOT / "modules" / "umi_consensus" / "main.nf").read_text(encoding="utf-8")
+        dockerfile_text = (REPO_ROOT / "containers" / "definitions" / "umi_consensus.Dockerfile").read_text(encoding="utf-8")
+
+        self.assertIn('samtools fastq ${meta.sample_id}.unmapped.bam', module_text)
+        self.assertIn('bwa mem -t ${task.cpus} -p -K 150000000 -Y ${ref_fasta} -', module_text)
+        self.assertIn('samtools sort --template-coordinate --threads ${sort_threads}', module_text)
+        self.assertIn('fgbio GroupReadsByUmi', module_text)
+        self.assertIn('fgbio CallMolecularConsensusReads', module_text)
+        self.assertIn('samtools fastq ${meta.sample_id}.consensus.unmapped.bam', module_text)
+        self.assertIn('bwa=0.7.17', dockerfile_text)
 
 
 if __name__ == "__main__":

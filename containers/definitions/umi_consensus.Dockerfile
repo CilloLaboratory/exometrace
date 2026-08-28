@@ -4,6 +4,7 @@ USER root
 
 RUN micromamba create -y -n umi -c conda-forge -c bioconda \
     openjdk=17 \
+    bwa=0.7.17 \
     samtools \
     fgbio=1.5.1 \
     && micromamba clean --all --yes
