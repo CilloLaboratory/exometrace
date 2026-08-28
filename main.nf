@@ -83,6 +83,7 @@ workflow {
     analysis_mode = readConfigValue(pipeline_config_path, 'analysis.mode')
     reference_fasta = readConfigValue(reference_path.toString(), 'reference.fasta')
     reference_fasta_path = file(reference_fasta, checkIfExists: true)
+    reference_fasta_index_path = file("${reference_fasta}.fai", checkIfExists: true)
     reference_bwa_index_0123 = file("${reference_fasta}.0123", checkIfExists: true)
     reference_bwa_index_amb = file("${reference_fasta}.amb", checkIfExists: true)
     reference_bwa_index_ann = file("${reference_fasta}.ann", checkIfExists: true)
@@ -309,7 +310,7 @@ workflow {
             }
 
         deepsomatic_inputs = paired_bams.map { meta, tumor_bam, tumor_bai, normal_bam, normal_bai, bait_bed, ref_cfg ->
-            tuple(meta, tumor_bam, tumor_bai, normal_bam, normal_bai, bait_bed, ref_cfg, reference_fasta)
+            tuple(meta, tumor_bam, tumor_bai, normal_bam, normal_bai, bait_bed, ref_cfg, reference_fasta_path, reference_fasta_index_path)
         }
         deepsomatic_calls = DEEPSOMATIC(deepsomatic_inputs)
 
@@ -322,7 +323,7 @@ workflow {
         deepvariant_inputs = marked_duplicates
             .filter { meta, bam, bai, dup_metrics, bait_bed, ref_cfg -> meta.sample_type == 'normal' }
             .map { meta, bam, bai, dup_metrics, bait_bed, ref_cfg ->
-                tuple(meta, bam, bai, bait_bed, ref_cfg, reference_fasta)
+                tuple(meta, bam, bai, bait_bed, ref_cfg, reference_fasta_path, reference_fasta_index_path)
             }
         deepvariant_calls = DEEPVARIANT(deepvariant_inputs)
 

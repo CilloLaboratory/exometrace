@@ -4,7 +4,7 @@ process DEEPVARIANT {
     container { params.deepvariant_container }
 
     input:
-    tuple val(meta), path(normal_bam), path(normal_bai), path(bait_bed), val(reference_config), val(ref_fasta)
+    tuple val(meta), path(normal_bam), path(normal_bai), path(bait_bed), val(reference_config), path(ref_fasta), path(ref_fasta_fai)
 
     output:
     tuple val(meta), path("${meta.sample_id}.deepvariant.vcf.gz"), path("${meta.sample_id}.deepvariant.vcf.gz.tbi"), path("${meta.sample_id}.deepvariant.g.vcf.gz")

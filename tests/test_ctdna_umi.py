@@ -101,6 +101,17 @@ class CtDnaWorkflowShapeTests(unittest.TestCase):
         self.assertIn('path(ref_fasta), path(ref_fasta_0123), path(ref_fasta_amb), path(ref_fasta_ann), path(ref_fasta_bwt), path(ref_fasta_pac)', align_module_text)
         self.assertIn('path(ref_fasta), path(ref_fasta_0123), path(ref_fasta_amb), path(ref_fasta_ann), path(ref_fasta_bwt), path(ref_fasta_pac)', ctdna_align_module_text)
 
+    def test_deepvariant_and_deepsomatic_stage_reference_fasta_index(self) -> None:
+        workflow_text = (REPO_ROOT / "main.nf").read_text(encoding="utf-8")
+        deepvariant_text = (REPO_ROOT / "modules" / "deepvariant" / "main.nf").read_text(encoding="utf-8")
+        deepsomatic_text = (REPO_ROOT / "modules" / "deepsomatic" / "main.nf").read_text(encoding="utf-8")
+
+        self.assertIn('reference_fasta_index_path = file("${reference_fasta}.fai", checkIfExists: true)', workflow_text)
+        self.assertIn('tuple(meta, bam, bai, bait_bed, ref_cfg, reference_fasta_path, reference_fasta_index_path)', workflow_text)
+        self.assertIn('tuple(meta, tumor_bam, tumor_bai, normal_bam, normal_bai, bait_bed, ref_cfg, reference_fasta_path, reference_fasta_index_path)', workflow_text)
+        self.assertIn('path(ref_fasta), path(ref_fasta_fai)', deepvariant_text)
+        self.assertIn('path(ref_fasta), path(ref_fasta_fai)', deepsomatic_text)
+
 
 if __name__ == "__main__":
     unittest.main()

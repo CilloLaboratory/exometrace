@@ -4,7 +4,7 @@ process DEEPSOMATIC {
     container { params.deepsomatic_container }
 
     input:
-    tuple val(meta), path(tumor_bam), path(tumor_bai), path(normal_bam), path(normal_bai), path(bait_bed), val(reference_config), val(ref_fasta)
+    tuple val(meta), path(tumor_bam), path(tumor_bai), path(normal_bam), path(normal_bai), path(bait_bed), val(reference_config), path(ref_fasta), path(ref_fasta_fai)
 
     output:
     tuple val(meta), path("${meta.patient_id}.somatic.vcf.gz"), path("${meta.patient_id}.somatic.vcf.gz.tbi")
