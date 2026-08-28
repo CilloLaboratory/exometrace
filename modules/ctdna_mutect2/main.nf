@@ -10,8 +10,9 @@ process CTDNA_MUTECT2 {
     tuple val(meta), path("${meta.patient_id}.ctdna.mutect2.unfiltered.vcf.gz"), path("${meta.patient_id}.ctdna.mutect2.unfiltered.vcf.gz.tbi"), path("${meta.patient_id}.ctdna.mutect2.unfiltered.vcf.gz.stats"), path("${meta.patient_id}.ctdna.f1r2.tar.gz"), path("${meta.patient_id}.ctdna.tumor.pileups.table"), path("${meta.patient_id}.ctdna.normal.pileups.table"), val(reference_config), path(ref_fasta), path(ref_fasta_fai), path(ref_fasta_dict)
 
     script:
+    def gatk_heap_gb = Math.max(2, task.memory.toGiga().intValue() - 4)
     """
-    gatk Mutect2 \
+    gatk --java-options "-Xms1g -Xmx${gatk_heap_gb}g" Mutect2 \
       -R ${ref_fasta} \
       -I ${tumor_bam} \
       -I ${normal_bam} \
@@ -22,9 +23,9 @@ process CTDNA_MUTECT2 {
       -L ${target_intervals} \
       --f1r2-tar-gz ${meta.patient_id}.ctdna.f1r2.tar.gz \
       -O ${meta.patient_id}.ctdna.mutect2.unfiltered.vcf.gz
-    gatk IndexFeatureFile -I ${meta.patient_id}.ctdna.mutect2.unfiltered.vcf.gz
-    gatk GetPileupSummaries -I ${tumor_bam} -V ${common_snps} -L ${target_intervals} -O ${meta.patient_id}.ctdna.tumor.pileups.table
-    gatk GetPileupSummaries -I ${normal_bam} -V ${common_snps} -L ${target_intervals} -O ${meta.patient_id}.ctdna.normal.pileups.table
+    gatk --java-options "-Xms1g -Xmx${gatk_heap_gb}g" IndexFeatureFile -I ${meta.patient_id}.ctdna.mutect2.unfiltered.vcf.gz
+    gatk --java-options "-Xms1g -Xmx${gatk_heap_gb}g" GetPileupSummaries -I ${tumor_bam} -V ${common_snps} -L ${target_intervals} -O ${meta.patient_id}.ctdna.tumor.pileups.table
+    gatk --java-options "-Xms1g -Xmx${gatk_heap_gb}g" GetPileupSummaries -I ${normal_bam} -V ${common_snps} -L ${target_intervals} -O ${meta.patient_id}.ctdna.normal.pileups.table
     """
 
     stub:
@@ -51,14 +52,15 @@ process CTDNA_FILTER_MUTECT2 {
     tuple val(meta), path("${meta.patient_id}.ctdna.mutect2.filtered.vcf.gz"), path("${meta.patient_id}.ctdna.mutect2.filtered.vcf.gz.tbi"), path("${meta.patient_id}.ctdna.contamination.table"), path("${meta.patient_id}.ctdna.segments.table")
 
     script:
+    def gatk_heap_gb = Math.max(2, task.memory.toGiga().intValue() - 2)
     """
-    gatk CalculateContamination \
+    gatk --java-options "-Xms1g -Xmx${gatk_heap_gb}g" CalculateContamination \
       -I ${tumor_pileups} \
       -matched ${normal_pileups} \
       -O ${meta.patient_id}.ctdna.contamination.table \
       --tumor-segmentation ${meta.patient_id}.ctdna.segments.table
-    gatk LearnReadOrientationModel -I ${f1r2_tar} -O ${meta.patient_id}.ctdna.artifact-priors.tar.gz
-    gatk FilterMutectCalls \
+    gatk --java-options "-Xms1g -Xmx${gatk_heap_gb}g" LearnReadOrientationModel -I ${f1r2_tar} -O ${meta.patient_id}.ctdna.artifact-priors.tar.gz
+    gatk --java-options "-Xms1g -Xmx${gatk_heap_gb}g" FilterMutectCalls \
       -V ${unfiltered_vcf} \
       -R ${ref_fasta} \
       --stats ${stats_file} \

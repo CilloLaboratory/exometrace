@@ -140,6 +140,20 @@ class CtDnaWorkflowShapeTests(unittest.TestCase):
         self.assertIn('path(census), path(hotspots)', driver_text)
         self.assertIn('path(arms_bed)', arm_level_text)
 
+    def test_gatk_modules_set_explicit_java_heap(self) -> None:
+        mutect2_text = (REPO_ROOT / "modules" / "mutect2" / "main.nf").read_text(encoding="utf-8")
+        ctdna_mutect2_text = (REPO_ROOT / "modules" / "ctdna_mutect2" / "main.nf").read_text(encoding="utf-8")
+        filter_mutect_text = (REPO_ROOT / "modules" / "filter_mutect" / "main.nf").read_text(encoding="utf-8")
+        alignment_qc_text = (REPO_ROOT / "modules" / "alignment_qc" / "main.nf").read_text(encoding="utf-8")
+        markduplicates_text = (REPO_ROOT / "modules" / "markduplicates" / "main.nf").read_text(encoding="utf-8")
+
+        self.assertIn('def gatk_heap_gb = Math.max(2, task.memory.toGiga().intValue() - 4)', mutect2_text)
+        self.assertIn('gatk --java-options "-Xms1g -Xmx${gatk_heap_gb}g" GetPileupSummaries', mutect2_text)
+        self.assertIn('gatk --java-options "-Xms1g -Xmx${gatk_heap_gb}g" GetPileupSummaries', ctdna_mutect2_text)
+        self.assertIn('gatk --java-options "-Xms1g -Xmx${gatk_heap_gb}g" FilterMutectCalls', filter_mutect_text)
+        self.assertIn('gatk --java-options "-Xms1g -Xmx${gatk_heap_gb}g" CollectAlignmentSummaryMetrics', alignment_qc_text)
+        self.assertIn('gatk --java-options "-Xms1g -Xmx${gatk_heap_gb}g" MarkDuplicates', markduplicates_text)
+
 
 if __name__ == "__main__":
     unittest.main()

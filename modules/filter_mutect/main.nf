@@ -10,18 +10,19 @@ process FILTER_MUTECT {
     tuple val(meta), path("${meta.patient_id}.mutect2.filtered.vcf.gz"), path("${meta.patient_id}.mutect2.filtered.vcf.gz.tbi"), path("${meta.patient_id}.contamination.table"), path("${meta.patient_id}.segments.table")
 
     script:
+    def gatk_heap_gb = Math.max(2, task.memory.toGiga().intValue() - 2)
     """
-    gatk CalculateContamination \
+    gatk --java-options "-Xms1g -Xmx${gatk_heap_gb}g" CalculateContamination \
       -I ${tumor_pileups} \
       -matched ${normal_pileups} \
       -O ${meta.patient_id}.contamination.table \
       --tumor-segmentation ${meta.patient_id}.segments.table
 
-    gatk LearnReadOrientationModel \
+    gatk --java-options "-Xms1g -Xmx${gatk_heap_gb}g" LearnReadOrientationModel \
       -I ${f1r2_tar} \
       -O ${meta.patient_id}.artifact-priors.tar.gz
 
-    gatk FilterMutectCalls \
+    gatk --java-options "-Xms1g -Xmx${gatk_heap_gb}g" FilterMutectCalls \
       -V ${unfiltered_vcf} \
       -R ${ref_fasta} \
       --stats ${stats_file} \

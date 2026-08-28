@@ -10,8 +10,9 @@ process MARK_DUPLICATES {
     tuple val(meta), path("${meta.sample_id}.markdup.bam"), path("${meta.sample_id}.markdup.bam.bai"), path("${meta.sample_id}.duplicate_metrics.txt"), path(bait_bed), val(reference_config)
 
     script:
+    def gatk_heap_gb = Math.max(2, task.memory.toGiga().intValue() - 4)
     """
-    gatk MarkDuplicates \
+    gatk --java-options "-Xms1g -Xmx${gatk_heap_gb}g" MarkDuplicates \
       -I ${bam} \
       -O ${meta.sample_id}.markdup.bam \
       -M ${meta.sample_id}.duplicate_metrics.txt \

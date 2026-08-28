@@ -11,14 +11,15 @@ process ALIGNMENT_QC {
     tuple val(meta), path("${meta.sample_id}.qc.tsv")
 
     script:
+    def gatk_heap_gb = Math.max(2, task.memory.toGiga().intValue() - 4)
     """
     samtools flagstat ${bam} > ${meta.sample_id}.flagstat.txt
     samtools stats ${bam} > ${meta.sample_id}.stats.txt
-    gatk CollectAlignmentSummaryMetrics \
+    gatk --java-options "-Xms1g -Xmx${gatk_heap_gb}g" CollectAlignmentSummaryMetrics \
       -R ${ref_fasta} \
       -I ${bam} \
       -O ${meta.sample_id}.alignment_summary_metrics.txt
-    gatk CollectInsertSizeMetrics \
+    gatk --java-options "-Xms1g -Xmx${gatk_heap_gb}g" CollectInsertSizeMetrics \
       -I ${bam} \
       -O ${meta.sample_id}.insert_size_metrics.txt \
       -H ${meta.sample_id}.insert_size_histogram.pdf
@@ -28,7 +29,7 @@ MEDIAN_INSERT_SIZE
 NA
 EOF
     fi
-    gatk CollectHsMetrics \
+    gatk --java-options "-Xms1g -Xmx${gatk_heap_gb}g" CollectHsMetrics \
       -R ${ref_fasta} \
       -I ${bam} \
       -BAIT_INTERVALS ${target_intervals} \

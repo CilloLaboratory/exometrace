@@ -10,8 +10,9 @@ process MUTECT2 {
     tuple val(meta), path("${meta.patient_id}.mutect2.unfiltered.vcf.gz"), path("${meta.patient_id}.mutect2.unfiltered.vcf.gz.tbi"), path("${meta.patient_id}.mutect2.unfiltered.vcf.gz.stats"), path("${meta.patient_id}.f1r2.tar.gz"), path("${meta.patient_id}.tumor.pileups.table"), path("${meta.patient_id}.normal.pileups.table"), val(reference_config), path(ref_fasta), path(ref_fasta_fai), path(ref_fasta_dict)
 
     script:
+    def gatk_heap_gb = Math.max(2, task.memory.toGiga().intValue() - 4)
     """
-    gatk Mutect2 \
+    gatk --java-options "-Xms1g -Xmx${gatk_heap_gb}g" Mutect2 \
       -R ${ref_fasta} \
       -I ${tumor_bam} \
       -I ${normal_bam} \
@@ -23,16 +24,16 @@ process MUTECT2 {
       --f1r2-tar-gz ${meta.patient_id}.f1r2.tar.gz \
       -O ${meta.patient_id}.mutect2.unfiltered.vcf.gz
 
-    gatk IndexFeatureFile \
+    gatk --java-options "-Xms1g -Xmx${gatk_heap_gb}g" IndexFeatureFile \
       -I ${meta.patient_id}.mutect2.unfiltered.vcf.gz
 
-    gatk GetPileupSummaries \
+    gatk --java-options "-Xms1g -Xmx${gatk_heap_gb}g" GetPileupSummaries \
       -I ${tumor_bam} \
       -V ${common_snps} \
       -L ${target_intervals} \
       -O ${meta.patient_id}.tumor.pileups.table
 
-    gatk GetPileupSummaries \
+    gatk --java-options "-Xms1g -Xmx${gatk_heap_gb}g" GetPileupSummaries \
       -I ${normal_bam} \
       -V ${common_snps} \
       -L ${target_intervals} \
