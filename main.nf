@@ -206,8 +206,8 @@ workflow {
         }
         ctdna_aligned = UMI_ALIGN_BWA(ctdna_align_inputs)
 
-        consensus_inputs = ctdna_aligned.map { meta, bam, bai, bait_bed, ref_cfg ->
-            tuple(meta, bam, bai, bait_bed, ref_cfg, ctdna_umi_tag_name, ctdna_read_structure_r1, ctdna_read_structure_r2, ctdna_min_family_size, ctdna_error_rate_pre_umi, ctdna_error_rate_post_umi)
+        consensus_inputs = ctdna_aligned.map { meta, bam, bai, r1, r2, bait_bed, ref_cfg ->
+            tuple(meta, bam, bai, r1, r2, bait_bed, ref_cfg, ctdna_umi_tag_name, ctdna_read_structure_r1, ctdna_read_structure_r2, ctdna_min_family_size, ctdna_error_rate_pre_umi, ctdna_error_rate_post_umi)
         }
         consensus_outputs = UMI_GROUP_CONSENSUS(consensus_inputs)
 

@@ -4,18 +4,21 @@ process UMI_GROUP_CONSENSUS {
     container { params.umi_consensus_container }
 
     input:
-    tuple val(meta), path(bam), path(bai), path(bait_bed), val(reference_config), val(tag_name), val(read_structure_r1), val(read_structure_r2), val(min_family_size), val(error_rate_pre_umi), val(error_rate_post_umi)
+    tuple val(meta), path(bam), path(bai), path(r1), path(r2), path(bait_bed), val(reference_config), val(tag_name), val(read_structure_r1), val(read_structure_r2), val(min_family_size), val(error_rate_pre_umi), val(error_rate_post_umi)
 
     output:
     tuple val(meta), path("${meta.sample_id}.consensus.bam"), path("${meta.sample_id}.consensus.bam.bai"), path("${meta.sample_id}.umi_qc.tsv"), path(bait_bed), val(reference_config)
 
     script:
     """
-    fgbio ExtractUmisFromBam \
+    fgbio AnnotateBamWithUmis \
       --input=${bam} \
+      --fastq=${r1} \
+      --fastq=${r2} \
       --output=${meta.sample_id}.tagged.bam \
-      -r ${read_structure_r1} ${read_structure_r2} \
-      --molecular-index-tags=${tag_name}
+      --attribute=${tag_name} \
+      --read-structure=${read_structure_r1} \
+      --read-structure=${read_structure_r2}
     fgbio GroupReadsByUmi \
       --input=${meta.sample_id}.tagged.bam \
       --output=${meta.sample_id}.grouped.bam \

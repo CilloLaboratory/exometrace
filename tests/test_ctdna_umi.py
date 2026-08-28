@@ -77,8 +77,11 @@ class CtDnaWorkflowShapeTests(unittest.TestCase):
 
     def test_consensus_module_extracts_umis_with_both_read_structures(self) -> None:
         module_text = (REPO_ROOT / "modules" / "umi_consensus" / "main.nf").read_text(encoding="utf-8")
-        self.assertIn("fgbio ExtractUmisFromBam", module_text)
-        self.assertIn("-r ${read_structure_r1} ${read_structure_r2}", module_text)
+        self.assertIn("fgbio AnnotateBamWithUmis", module_text)
+        self.assertIn("--fastq=${r1}", module_text)
+        self.assertIn("--fastq=${r2}", module_text)
+        self.assertIn("--read-structure=${read_structure_r1}", module_text)
+        self.assertIn("--read-structure=${read_structure_r2}", module_text)
         self.assertIn("read_structure_r1", module_text)
         self.assertIn("read_structure_r2", module_text)
 
@@ -89,6 +92,7 @@ class CtDnaWorkflowShapeTests(unittest.TestCase):
         self.assertIn("consensus_inputs = ctdna_aligned.map", workflow_text)
         self.assertIn("ctdna_read_structure_r1", workflow_text)
         self.assertIn("ctdna_read_structure_r2", workflow_text)
+        self.assertIn("tuple(meta, bam, bai, r1, r2, bait_bed, ref_cfg", workflow_text)
 
     def test_bwa_alignment_stages_reference_sidecars(self) -> None:
         workflow_text = (REPO_ROOT / "main.nf").read_text(encoding="utf-8")
