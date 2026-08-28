@@ -1,6 +1,6 @@
 # Tumor/Normal WES Pipeline
 
-This repository contains a Nextflow DSL2 workflow for paired tumor/normal whole-exome sequencing analysis aligned to the design in [tumor_normal_wes_agentic_workflow.md](/home/arc85/Desktop/wes_workflow/tumor_normal_wes_agentic_workflow.md).
+This repository contains a Nextflow DSL2 workflow for paired tumor/normal whole-exome sequencing analysis with an emphasis on ctDNA.
 
 The workflow currently covers:
 
