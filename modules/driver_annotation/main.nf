@@ -4,7 +4,7 @@ process DRIVER_ANNOTATION {
     publishDir "${params.results_dir}/cohort", mode: 'copy'
 
     input:
-    tuple val(meta), path(maf), val(reference_config), val(census), val(hotspots)
+    tuple val(meta), path(maf), val(reference_config), path(census), path(hotspots)
 
     output:
     tuple val(meta), path("${meta.patient_id}.drivers_long.tsv"), path("${meta.patient_id}.driver_matrix.tsv")

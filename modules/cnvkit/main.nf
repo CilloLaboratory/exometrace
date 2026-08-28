@@ -4,7 +4,7 @@ process CNVKIT {
     container { params.cnvkit_container }
 
     input:
-    tuple val(meta), path(tumor_bam), path(tumor_bai), path(normal_bam), path(normal_bai), path(bait_bed), val(reference_config), val(ref_fasta)
+    tuple val(meta), path(tumor_bam), path(tumor_bai), path(normal_bam), path(normal_bai), path(bait_bed), val(reference_config), path(ref_fasta), path(ref_fasta_fai)
 
     output:
     tuple val(meta), path("${meta.tumor_sample}.targetcoverage.cnn"), path("${meta.tumor_sample}.antitargetcoverage.cnn"), path("${meta.tumor_sample}.cnr"), path("${meta.tumor_sample}.cns"), path("${meta.tumor_sample}.call.cns")

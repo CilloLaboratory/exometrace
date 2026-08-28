@@ -4,7 +4,7 @@ process CFSNV_CFDNA_PREP {
     container { params.cfsnv_container }
 
     input:
-    tuple val(meta), path(plasma_r1), path(plasma_r2), path(bait_bed), val(reference_config), val(ref_fasta), val(snp_database)
+    tuple val(meta), path(plasma_r1), path(plasma_r2), path(bait_bed), val(reference_config), path(ref_fasta), path(ref_fasta_fai), path(ref_fasta_dict), path(ref_fasta_0123), path(ref_fasta_amb), path(ref_fasta_ann), path(ref_fasta_bwt), path(ref_fasta_pac), path(snp_database), path(snp_database_tbi)
 
     output:
     tuple val(meta), path("${meta.patient_id}.plasma.extendedFrags.recal.bam"), path("${meta.patient_id}.plasma.extendedFrags.recal.bam.bai"), path("${meta.patient_id}.plasma.notCombined.recal.bam"), path("${meta.patient_id}.plasma.notCombined.recal.bam.bai")

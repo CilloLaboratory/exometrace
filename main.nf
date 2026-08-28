@@ -84,20 +84,32 @@ workflow {
     reference_fasta = readConfigValue(reference_path.toString(), 'reference.fasta')
     reference_fasta_path = file(reference_fasta, checkIfExists: true)
     reference_fasta_index_path = file("${reference_fasta}.fai", checkIfExists: true)
+    reference_fasta_dict_path = file(reference_fasta.replaceFirst(/\.fa(sta)?$/, '.dict'), checkIfExists: true)
     reference_bwa_index_0123 = file("${reference_fasta}.0123", checkIfExists: true)
     reference_bwa_index_amb = file("${reference_fasta}.amb", checkIfExists: true)
     reference_bwa_index_ann = file("${reference_fasta}.ann", checkIfExists: true)
     reference_bwa_index_bwt = file("${reference_fasta}.bwt.2bit.64", checkIfExists: true)
     reference_bwa_index_pac = file("${reference_fasta}.pac", checkIfExists: true)
     target_intervals = readConfigValue(reference_path.toString(), 'intervals.interval_list')
+    target_intervals_path = file(target_intervals, checkIfExists: true)
     germline_resource = readConfigValue(reference_path.toString(), 'gatk.germline_resource')
+    germline_resource_path = file(germline_resource, checkIfExists: true)
+    germline_resource_index_path = file("${germline_resource}.tbi", checkIfExists: true)
     common_snps = readConfigValue(reference_path.toString(), 'gatk.common_snps')
+    common_snps_path = file(common_snps, checkIfExists: true)
+    common_snps_index_path = file("${common_snps}.tbi", checkIfExists: true)
     panel_of_normals = readConfigValue(reference_path.toString(), 'gatk.panel_of_normals')
+    panel_of_normals_path = file(panel_of_normals, checkIfExists: true)
+    panel_of_normals_index_path = file("${panel_of_normals}.tbi", checkIfExists: true)
     vep_cache = readConfigValue(reference_path.toString(), 'vep.cache_dir')
+    vep_cache_path = file(vep_cache, checkIfExists: true)
     reference_build = readConfigValue(reference_path.toString(), 'reference.build')
     chromosome_arms = readConfigValue(reference_path.toString(), 'annotations.chromosome_arms')
+    chromosome_arms_path = file(chromosome_arms, checkIfExists: true)
     cancer_gene_census = readConfigValue(reference_path.toString(), 'annotations.cancer_gene_census')
+    cancer_gene_census_path = file(cancer_gene_census, checkIfExists: true)
     hotspots = readConfigValue(reference_path.toString(), 'annotations.hotspots')
+    hotspots_path = file(hotspots, checkIfExists: true)
     facets_cval = readConfigValue(pipeline_config_path, 'copy_number.purity_ploidy.facets.cval')
     facets_ndepth = readConfigValue(pipeline_config_path, 'copy_number.purity_ploidy.facets.ndepth')
     facets_ndepthmax = readConfigValue(pipeline_config_path, 'copy_number.purity_ploidy.facets.ndepthmax')
@@ -145,6 +157,8 @@ workflow {
         ctdna_emit_high_sensitivity = readConfigValue(pipeline_config_path, 'ctdna.outputs.emit_high_sensitivity').toLowerCase() == 'true'
         ctdna_emit_high_confidence = readConfigValue(pipeline_config_path, 'ctdna.outputs.emit_high_confidence').toLowerCase() == 'true'
         ctdna_blocked_positions_vcf = readConfigValue(reference_path.toString(), 'cfsnv.blocked_positions_vcf')
+        ctdna_blocked_positions_vcf_path = file(ctdna_blocked_positions_vcf, checkIfExists: true)
+        ctdna_blocked_positions_index_path = file("${ctdna_blocked_positions_vcf}.tbi", checkIfExists: true)
 
         fastq_validated = FASTQ_VALIDATE(sample_fastqs)
         fastqc_inputs = fastq_validated.map { meta, validation_tsv, r1, r2, bait_bed ->
@@ -178,12 +192,12 @@ workflow {
             }
 
         cfsnv_stdprep_inputs = ctdna_pairs.map { meta, plasma_r1, plasma_r2, wbc_r1, wbc_r2, bait_bed, plasma_template_trim_qc, wbc_template_trim_qc ->
-            tuple(meta, plasma_r1, plasma_r2, wbc_r1, wbc_r2, bait_bed, reference_path.toString(), reference_fasta, common_snps)
+            tuple(meta, plasma_r1, plasma_r2, wbc_r1, wbc_r2, bait_bed, reference_path.toString(), reference_fasta_path, reference_fasta_index_path, reference_fasta_dict_path, reference_bwa_index_0123, reference_bwa_index_amb, reference_bwa_index_ann, reference_bwa_index_bwt, reference_bwa_index_pac, common_snps_path, common_snps_index_path)
         }
         cfsnv_stdprep = CFSNV_STD_PREP(cfsnv_stdprep_inputs)
 
         cfsnv_cfdnaprep_inputs = ctdna_pairs.map { meta, plasma_r1, plasma_r2, wbc_r1, wbc_r2, bait_bed, plasma_template_trim_qc, wbc_template_trim_qc ->
-            tuple(meta, plasma_r1, plasma_r2, bait_bed, reference_path.toString(), reference_fasta, common_snps)
+            tuple(meta, plasma_r1, plasma_r2, bait_bed, reference_path.toString(), reference_fasta_path, reference_fasta_index_path, reference_fasta_dict_path, reference_bwa_index_0123, reference_bwa_index_amb, reference_bwa_index_ann, reference_bwa_index_bwt, reference_bwa_index_pac, common_snps_path, common_snps_index_path)
         }
         cfsnv_cfdnaprep = CFSNV_CFDNA_PREP(cfsnv_cfdnaprep_inputs)
 
@@ -215,7 +229,7 @@ workflow {
             }
 
         ctdna_mutect2_inputs = consensus_pairs.map { meta, plasma, wbc ->
-            tuple(meta, plasma.bam, plasma.bai, wbc.bam, wbc.bai, plasma.bait_bed, plasma.ref_cfg, reference_fasta, germline_resource, common_snps, panel_of_normals, target_intervals)
+            tuple(meta, plasma.bam, plasma.bai, wbc.bam, wbc.bai, plasma.bait_bed, plasma.ref_cfg, reference_fasta_path, reference_fasta_index_path, reference_fasta_dict_path, germline_resource_path, germline_resource_index_path, common_snps_path, common_snps_index_path, panel_of_normals_path, panel_of_normals_index_path, target_intervals_path)
         }
         ctdna_mutect2_raw = CTDNA_MUTECT2(ctdna_mutect2_inputs)
         ctdna_mutect2_filtered = CTDNA_FILTER_MUTECT2(ctdna_mutect2_raw)
@@ -224,7 +238,7 @@ workflow {
             .join(cfsnv_cfdnaprep)
             .join(ctdna_pairs.map { meta, plasma_r1, plasma_r2, wbc_r1, wbc_r2, bait_bed, plasma_template_trim_qc, wbc_template_trim_qc -> tuple(meta, bait_bed, plasma_template_trim_qc) })
             .map { meta, plasma_std_bam, plasma_std_bai, wbc_std_bam, wbc_std_bai, sample_qc_tsv, plasma_extended_bam, plasma_extended_bai, plasma_notcombined_bam, plasma_notcombined_bai, bait_bed, plasma_template_trim_qc ->
-                tuple(meta, plasma_std_bam, plasma_std_bai, wbc_std_bam, wbc_std_bai, plasma_extended_bam, plasma_extended_bai, plasma_notcombined_bam, plasma_notcombined_bai, bait_bed, reference_fasta, common_snps, ctdna_blocked_positions_vcf, ctdna_min_hold, ctdna_min_pass)
+                tuple(meta, plasma_std_bam, plasma_std_bai, wbc_std_bam, wbc_std_bai, plasma_extended_bam, plasma_extended_bai, plasma_notcombined_bam, plasma_notcombined_bai, bait_bed, reference_fasta_path, reference_fasta_index_path, reference_fasta_dict_path, common_snps_path, common_snps_index_path, ctdna_blocked_positions_vcf_path, ctdna_blocked_positions_index_path, ctdna_min_hold, ctdna_min_pass)
             }
         ctdna_cfsnv_calls = CTDNA_CFSNV_CALL(ctdna_cfsnv_inputs)
 
@@ -236,10 +250,10 @@ workflow {
         ctdna_comparison = COMPARE_CTDNA_CALLSETS(ctdna_comparison_inputs)
 
         cfsnv_vep_inputs = ctdna_cfsnv_calls.map { meta, vcf, tbi ->
-            tuple(meta, vcf, reference_path.toString(), 'cfsnv', reference_fasta, vep_cache)
+            tuple(meta, vcf, reference_path.toString(), 'cfsnv', reference_fasta_path, reference_fasta_index_path, vep_cache_path)
         }
         ctdna_mutect2_vep_inputs = ctdna_mutect2_filtered.map { meta, vcf, tbi, contamination, segments ->
-            tuple(meta, vcf, reference_path.toString(), 'ctdna_mutect2', reference_fasta, vep_cache)
+            tuple(meta, vcf, reference_path.toString(), 'ctdna_mutect2', reference_fasta_path, reference_fasta_index_path, vep_cache_path)
         }
         cfsnv_annotated = VEP_CFSNV(cfsnv_vep_inputs)
         ctdna_mutect2_annotated = VEP_CTDNA_MUTECT2(ctdna_mutect2_vep_inputs)
@@ -284,7 +298,7 @@ workflow {
         marked_duplicates = MARK_DUPLICATES(aligned)
 
         qc_inputs = marked_duplicates.map { meta, bam, bai, dup_metrics, bait_bed, ref_cfg ->
-            tuple(meta, bam, bai, dup_metrics, bait_bed, ref_cfg, reference_fasta, target_intervals)
+            tuple(meta, bam, bai, dup_metrics, bait_bed, ref_cfg, reference_fasta_path, reference_fasta_index_path, reference_fasta_dict_path, target_intervals_path)
         }
         alignment_qc = ALIGNMENT_QC(qc_inputs)
         sample_qc = MERGE_SAMPLE_QC(alignment_qc.map { meta, qc_tsv -> qc_tsv }.collect())
@@ -315,7 +329,7 @@ workflow {
         deepsomatic_calls = DEEPSOMATIC(deepsomatic_inputs)
 
         mutect2_inputs = paired_bams.map { meta, tumor_bam, tumor_bai, normal_bam, normal_bai, bait_bed, ref_cfg ->
-            tuple(meta, tumor_bam, tumor_bai, normal_bam, normal_bai, bait_bed, ref_cfg, reference_fasta, germline_resource, common_snps, panel_of_normals, target_intervals)
+            tuple(meta, tumor_bam, tumor_bai, normal_bam, normal_bai, bait_bed, ref_cfg, reference_fasta_path, reference_fasta_index_path, reference_fasta_dict_path, germline_resource_path, germline_resource_index_path, common_snps_path, common_snps_index_path, panel_of_normals_path, panel_of_normals_index_path, target_intervals_path)
         }
         mutect2_raw = MUTECT2(mutect2_inputs)
         mutect2_filtered = FILTER_MUTECT(mutect2_raw)
@@ -335,17 +349,17 @@ workflow {
         somatic_comparison = SOMATIC_COMPARE(compare_inputs)
 
         cnvkit_inputs = paired_bams.map { meta, tumor_bam, tumor_bai, normal_bam, normal_bai, bait_bed, ref_cfg ->
-            tuple(meta, tumor_bam, tumor_bai, normal_bam, normal_bai, bait_bed, ref_cfg, reference_fasta)
+            tuple(meta, tumor_bam, tumor_bai, normal_bam, normal_bai, bait_bed, ref_cfg, reference_fasta_path, reference_fasta_index_path)
         }
         cnvkit_calls = CNVKIT(cnvkit_inputs)
 
         purity_ploidy_inputs = paired_bams.map { meta, tumor_bam, tumor_bai, normal_bam, normal_bai, bait_bed, ref_cfg ->
-            tuple(meta, tumor_bam, tumor_bai, normal_bam, normal_bai, bait_bed, ref_cfg, pipeline_config_path, common_snps, reference_build, facets_cval, facets_ndepth, facets_ndepthmax)
+            tuple(meta, tumor_bam, tumor_bai, normal_bam, normal_bai, bait_bed, ref_cfg, pipeline_config_path, common_snps_path, common_snps_index_path, reference_build, facets_cval, facets_ndepth, facets_ndepthmax)
         }
         purity_ploidy = PURITY_PLOIDY(purity_ploidy_inputs)
 
         arm_level_inputs = cnvkit_calls.map { meta, targetcoverage, antitargetcoverage, cnr, cns, call_cns ->
-            tuple(meta, call_cns, reference_path.toString(), chromosome_arms)
+            tuple(meta, call_cns, reference_path.toString(), chromosome_arms_path)
         }
         arm_level_cnv = ARM_LEVEL_CNV(arm_level_inputs)
 
@@ -355,10 +369,10 @@ workflow {
         arm_level_matrix = MERGE_ARM_MATRICES(arm_level_cnv.map { meta, long_tsv, matrix_tsv -> matrix_tsv }.collect())
 
         deepsomatic_vep_inputs = deepsomatic_calls.map { meta, vcf, tbi ->
-            tuple(meta, vcf, reference_path.toString(), 'deepsomatic', reference_fasta, vep_cache)
+            tuple(meta, vcf, reference_path.toString(), 'deepsomatic', reference_fasta_path, reference_fasta_index_path, vep_cache_path)
         }
         mutect2_vep_inputs = mutect2_filtered.map { meta, vcf, tbi, contamination, segments ->
-            tuple(meta, vcf, reference_path.toString(), 'mutect2', reference_fasta, vep_cache)
+            tuple(meta, vcf, reference_path.toString(), 'mutect2', reference_fasta_path, reference_fasta_index_path, vep_cache_path)
         }
         deepsomatic_annotated = VEP_DEEPSOMATIC(deepsomatic_vep_inputs)
         mutect2_annotated = VEP_MUTECT2(mutect2_vep_inputs)
@@ -371,7 +385,7 @@ workflow {
         maf_rows = MAKE_MAF(maf_inputs)
 
         driver_inputs = maf_rows.map { meta, maf ->
-            tuple(meta, maf, reference_path.toString(), cancer_gene_census, hotspots)
+            tuple(meta, maf, reference_path.toString(), cancer_gene_census_path, hotspots_path)
         }
         drivers = DRIVER_ANNOTATION(driver_inputs)
 

@@ -4,7 +4,7 @@ process PURITY_PLOIDY {
     container { params.facets_container }
 
     input:
-    tuple val(meta), path(tumor_bam), path(tumor_bai), path(normal_bam), path(normal_bai), path(bait_bed), val(reference_config), val(pipeline_config), val(common_snps), val(genome_build), val(facets_cval), val(facets_ndepth), val(facets_ndepthmax)
+    tuple val(meta), path(tumor_bam), path(tumor_bai), path(normal_bam), path(normal_bai), path(bait_bed), val(reference_config), val(pipeline_config), path(common_snps), path(common_snps_tbi), val(genome_build), val(facets_cval), val(facets_ndepth), val(facets_ndepthmax)
 
     output:
     tuple val(meta), path("${meta.patient_id}.purity_ploidy.tsv"), path("${meta.patient_id}.allele_specific_cnv.tsv")

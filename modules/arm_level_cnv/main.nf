@@ -5,7 +5,7 @@ process ARM_LEVEL_CNV {
     publishDir "${params.results_dir}/cohort", mode: 'copy', pattern: "*.arm_level_cnv_matrix.tsv"
 
     input:
-    tuple val(meta), path(call_cns), val(reference_config), val(arms_bed)
+    tuple val(meta), path(call_cns), val(reference_config), path(arms_bed)
 
     output:
     tuple val(meta), path("${meta.patient_id}.arm_level_cnv_long.tsv"), path("${meta.patient_id}.arm_level_cnv_matrix.tsv")

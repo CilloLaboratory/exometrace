@@ -4,10 +4,10 @@ process MUTECT2 {
     container { params.gatk_container }
 
     input:
-    tuple val(meta), path(tumor_bam), path(tumor_bai), path(normal_bam), path(normal_bai), path(bait_bed), val(reference_config), val(ref_fasta), val(germline_resource), val(common_snps), val(pon), val(target_intervals)
+    tuple val(meta), path(tumor_bam), path(tumor_bai), path(normal_bam), path(normal_bai), path(bait_bed), val(reference_config), path(ref_fasta), path(ref_fasta_fai), path(ref_fasta_dict), path(germline_resource), path(germline_resource_tbi), path(common_snps), path(common_snps_tbi), path(pon), path(pon_tbi), path(target_intervals)
 
     output:
-    tuple val(meta), path("${meta.patient_id}.mutect2.unfiltered.vcf.gz"), path("${meta.patient_id}.mutect2.unfiltered.vcf.gz.tbi"), path("${meta.patient_id}.mutect2.unfiltered.vcf.gz.stats"), path("${meta.patient_id}.f1r2.tar.gz"), path("${meta.patient_id}.tumor.pileups.table"), path("${meta.patient_id}.normal.pileups.table"), val(reference_config), val(ref_fasta)
+    tuple val(meta), path("${meta.patient_id}.mutect2.unfiltered.vcf.gz"), path("${meta.patient_id}.mutect2.unfiltered.vcf.gz.tbi"), path("${meta.patient_id}.mutect2.unfiltered.vcf.gz.stats"), path("${meta.patient_id}.f1r2.tar.gz"), path("${meta.patient_id}.tumor.pileups.table"), path("${meta.patient_id}.normal.pileups.table"), val(reference_config), path(ref_fasta), path(ref_fasta_fai), path(ref_fasta_dict)
 
     script:
     """

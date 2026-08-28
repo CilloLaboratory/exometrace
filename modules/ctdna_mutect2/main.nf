@@ -4,10 +4,10 @@ process CTDNA_MUTECT2 {
     container { params.gatk_container }
 
     input:
-    tuple val(meta), path(tumor_bam), path(tumor_bai), path(normal_bam), path(normal_bai), path(bait_bed), val(reference_config), val(ref_fasta), val(germline_resource), val(common_snps), val(pon), val(target_intervals)
+    tuple val(meta), path(tumor_bam), path(tumor_bai), path(normal_bam), path(normal_bai), path(bait_bed), val(reference_config), path(ref_fasta), path(ref_fasta_fai), path(ref_fasta_dict), path(germline_resource), path(germline_resource_tbi), path(common_snps), path(common_snps_tbi), path(pon), path(pon_tbi), path(target_intervals)
 
     output:
-    tuple val(meta), path("${meta.patient_id}.ctdna.mutect2.unfiltered.vcf.gz"), path("${meta.patient_id}.ctdna.mutect2.unfiltered.vcf.gz.tbi"), path("${meta.patient_id}.ctdna.mutect2.unfiltered.vcf.gz.stats"), path("${meta.patient_id}.ctdna.f1r2.tar.gz"), path("${meta.patient_id}.ctdna.tumor.pileups.table"), path("${meta.patient_id}.ctdna.normal.pileups.table"), val(reference_config), val(ref_fasta)
+    tuple val(meta), path("${meta.patient_id}.ctdna.mutect2.unfiltered.vcf.gz"), path("${meta.patient_id}.ctdna.mutect2.unfiltered.vcf.gz.tbi"), path("${meta.patient_id}.ctdna.mutect2.unfiltered.vcf.gz.stats"), path("${meta.patient_id}.ctdna.f1r2.tar.gz"), path("${meta.patient_id}.ctdna.tumor.pileups.table"), path("${meta.patient_id}.ctdna.normal.pileups.table"), val(reference_config), path(ref_fasta), path(ref_fasta_fai), path(ref_fasta_dict)
 
     script:
     """
@@ -45,7 +45,7 @@ process CTDNA_FILTER_MUTECT2 {
     container { params.gatk_container }
 
     input:
-    tuple val(meta), path(unfiltered_vcf), path(unfiltered_vcf_tbi), path(stats_file), path(f1r2_tar), path(tumor_pileups), path(normal_pileups), val(reference_config), val(ref_fasta)
+    tuple val(meta), path(unfiltered_vcf), path(unfiltered_vcf_tbi), path(stats_file), path(f1r2_tar), path(tumor_pileups), path(normal_pileups), val(reference_config), path(ref_fasta), path(ref_fasta_fai), path(ref_fasta_dict)
 
     output:
     tuple val(meta), path("${meta.patient_id}.ctdna.mutect2.filtered.vcf.gz"), path("${meta.patient_id}.ctdna.mutect2.filtered.vcf.gz.tbi"), path("${meta.patient_id}.ctdna.contamination.table"), path("${meta.patient_id}.ctdna.segments.table")
@@ -85,7 +85,7 @@ process CTDNA_CFSNV_CALL {
     container { params.cfsnv_container }
 
     input:
-    tuple val(meta), path(plasma_std_bam), path(plasma_std_bai), path(wbc_std_bam), path(wbc_std_bai), path(plasma_extended_bam), path(plasma_extended_bai), path(plasma_notcombined_bam), path(plasma_notcombined_bai), path(bait_bed), val(ref_fasta), val(snp_database), val(blocked_positions_vcf), val(min_hold_support), val(min_pass_support)
+    tuple val(meta), path(plasma_std_bam), path(plasma_std_bai), path(wbc_std_bam), path(wbc_std_bai), path(plasma_extended_bam), path(plasma_extended_bai), path(plasma_notcombined_bam), path(plasma_notcombined_bai), path(bait_bed), path(ref_fasta), path(ref_fasta_fai), path(ref_fasta_dict), path(snp_database), path(snp_database_tbi), path(blocked_positions_vcf), path(blocked_positions_tbi), val(min_hold_support), val(min_pass_support)
 
     output:
     tuple val(meta), path("${meta.patient_id}.cfsnv.vcf.gz"), path("${meta.patient_id}.cfsnv.vcf.gz.tbi")

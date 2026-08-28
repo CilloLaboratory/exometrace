@@ -4,7 +4,7 @@ process FILTER_MUTECT {
     container { params.gatk_container }
 
     input:
-    tuple val(meta), path(unfiltered_vcf), path(unfiltered_vcf_tbi), path(stats_file), path(f1r2_tar), path(tumor_pileups), path(normal_pileups), val(reference_config), val(ref_fasta)
+    tuple val(meta), path(unfiltered_vcf), path(unfiltered_vcf_tbi), path(stats_file), path(f1r2_tar), path(tumor_pileups), path(normal_pileups), val(reference_config), path(ref_fasta), path(ref_fasta_fai), path(ref_fasta_dict)
 
     output:
     tuple val(meta), path("${meta.patient_id}.mutect2.filtered.vcf.gz"), path("${meta.patient_id}.mutect2.filtered.vcf.gz.tbi"), path("${meta.patient_id}.contamination.table"), path("${meta.patient_id}.segments.table")

@@ -5,7 +5,7 @@ process ALIGNMENT_QC {
     container { params.qc_container }
 
     input:
-    tuple val(meta), path(bam), path(bai), path(dup_metrics), path(bait_bed), val(reference_config), val(ref_fasta), val(target_intervals)
+    tuple val(meta), path(bam), path(bai), path(dup_metrics), path(bait_bed), val(reference_config), path(ref_fasta), path(ref_fasta_fai), path(ref_fasta_dict), path(target_intervals)
 
     output:
     tuple val(meta), path("${meta.sample_id}.qc.tsv")

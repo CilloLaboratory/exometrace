@@ -4,7 +4,7 @@ process VEP {
     container { params.vep_container }
 
     input:
-    tuple val(meta), path(input_vcf), val(reference_config), val(callset_name), val(ref_fasta), val(vep_cache)
+    tuple val(meta), path(input_vcf), val(reference_config), val(callset_name), path(ref_fasta), path(ref_fasta_fai), path(vep_cache)
 
     output:
     tuple val(meta), path("${meta.patient_id}.${callset_name}.vep.vcf.gz")

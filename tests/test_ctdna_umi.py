@@ -112,6 +112,34 @@ class CtDnaWorkflowShapeTests(unittest.TestCase):
         self.assertIn('path(ref_fasta), path(ref_fasta_fai)', deepvariant_text)
         self.assertIn('path(ref_fasta), path(ref_fasta_fai)', deepsomatic_text)
 
+    def test_reference_assets_are_staged_for_all_container_modules(self) -> None:
+        workflow_text = (REPO_ROOT / "main.nf").read_text(encoding="utf-8")
+        alignment_qc_text = (REPO_ROOT / "modules" / "alignment_qc" / "main.nf").read_text(encoding="utf-8")
+        mutect2_text = (REPO_ROOT / "modules" / "mutect2" / "main.nf").read_text(encoding="utf-8")
+        ctdna_mutect2_text = (REPO_ROOT / "modules" / "ctdna_mutect2" / "main.nf").read_text(encoding="utf-8")
+        cfsnv_stdprep_text = (REPO_ROOT / "modules" / "cfsnv_stdprep" / "main.nf").read_text(encoding="utf-8")
+        cfsnv_cfdnaprep_text = (REPO_ROOT / "modules" / "cfsnv_cfdnaprep" / "main.nf").read_text(encoding="utf-8")
+        cnvkit_text = (REPO_ROOT / "modules" / "cnvkit" / "main.nf").read_text(encoding="utf-8")
+        purity_ploidy_text = (REPO_ROOT / "modules" / "purity_ploidy" / "main.nf").read_text(encoding="utf-8")
+        vep_text = (REPO_ROOT / "modules" / "vep" / "main.nf").read_text(encoding="utf-8")
+        driver_text = (REPO_ROOT / "modules" / "driver_annotation" / "main.nf").read_text(encoding="utf-8")
+        arm_level_text = (REPO_ROOT / "modules" / "arm_level_cnv" / "main.nf").read_text(encoding="utf-8")
+
+        self.assertIn('reference_fasta_dict_path = file(reference_fasta.replaceFirst(/\\.fa(sta)?$/, \'.dict\'), checkIfExists: true)', workflow_text)
+        self.assertIn('germline_resource_index_path = file("${germline_resource}.tbi", checkIfExists: true)', workflow_text)
+        self.assertIn('panel_of_normals_index_path = file("${panel_of_normals}.tbi", checkIfExists: true)', workflow_text)
+        self.assertIn('vep_cache_path = file(vep_cache, checkIfExists: true)', workflow_text)
+        self.assertIn('path(ref_fasta), path(ref_fasta_fai), path(ref_fasta_dict), path(target_intervals)', alignment_qc_text)
+        self.assertIn('path(ref_fasta), path(ref_fasta_fai), path(ref_fasta_dict), path(germline_resource), path(germline_resource_tbi), path(common_snps), path(common_snps_tbi), path(pon), path(pon_tbi), path(target_intervals)', mutect2_text)
+        self.assertIn('path(ref_fasta), path(ref_fasta_fai), path(ref_fasta_dict), path(germline_resource), path(germline_resource_tbi), path(common_snps), path(common_snps_tbi), path(pon), path(pon_tbi), path(target_intervals)', ctdna_mutect2_text)
+        self.assertIn('path(ref_fasta), path(ref_fasta_fai), path(ref_fasta_dict), path(ref_fasta_0123), path(ref_fasta_amb), path(ref_fasta_ann), path(ref_fasta_bwt), path(ref_fasta_pac), path(snp_database), path(snp_database_tbi)', cfsnv_stdprep_text)
+        self.assertIn('path(ref_fasta), path(ref_fasta_fai), path(ref_fasta_dict), path(ref_fasta_0123), path(ref_fasta_amb), path(ref_fasta_ann), path(ref_fasta_bwt), path(ref_fasta_pac), path(snp_database), path(snp_database_tbi)', cfsnv_cfdnaprep_text)
+        self.assertIn('path(ref_fasta), path(ref_fasta_fai)', cnvkit_text)
+        self.assertIn('path(common_snps), path(common_snps_tbi)', purity_ploidy_text)
+        self.assertIn('path(ref_fasta), path(ref_fasta_fai), path(vep_cache)', vep_text)
+        self.assertIn('path(census), path(hotspots)', driver_text)
+        self.assertIn('path(arms_bed)', arm_level_text)
+
 
 if __name__ == "__main__":
     unittest.main()
