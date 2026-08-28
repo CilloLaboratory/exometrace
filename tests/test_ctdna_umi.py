@@ -90,6 +90,17 @@ class CtDnaWorkflowShapeTests(unittest.TestCase):
         self.assertIn("ctdna_read_structure_r1", workflow_text)
         self.assertIn("ctdna_read_structure_r2", workflow_text)
 
+    def test_bwa_alignment_stages_reference_sidecars(self) -> None:
+        workflow_text = (REPO_ROOT / "main.nf").read_text(encoding="utf-8")
+        align_module_text = (REPO_ROOT / "modules" / "align" / "main.nf").read_text(encoding="utf-8")
+        ctdna_align_module_text = (REPO_ROOT / "modules" / "ctdna_align" / "main.nf").read_text(encoding="utf-8")
+
+        self.assertIn('reference_fasta_path = file(reference_fasta, checkIfExists: true)', workflow_text)
+        self.assertIn('reference_bwa_index_bwt = file("${reference_fasta}.bwt.2bit.64", checkIfExists: true)', workflow_text)
+        self.assertIn('tuple(meta, r1, r2, bait_bed, reference_path.toString(), reference_fasta_path, reference_bwa_index_0123, reference_bwa_index_amb, reference_bwa_index_ann, reference_bwa_index_bwt, reference_bwa_index_pac)', workflow_text)
+        self.assertIn('path(ref_fasta), path(ref_fasta_0123), path(ref_fasta_amb), path(ref_fasta_ann), path(ref_fasta_bwt), path(ref_fasta_pac)', align_module_text)
+        self.assertIn('path(ref_fasta), path(ref_fasta_0123), path(ref_fasta_amb), path(ref_fasta_ann), path(ref_fasta_bwt), path(ref_fasta_pac)', ctdna_align_module_text)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -4,7 +4,7 @@ process ALIGN_BWA_MEM2 {
     container { params.align_container }
 
     input:
-    tuple val(meta), path(r1), path(r2), path(bait_bed), val(reference_config), val(ref_fasta)
+    tuple val(meta), path(r1), path(r2), path(bait_bed), val(reference_config), path(ref_fasta), path(ref_fasta_0123), path(ref_fasta_amb), path(ref_fasta_ann), path(ref_fasta_bwt), path(ref_fasta_pac)
 
     output:
     tuple val(meta), path("${meta.sample_id}.sorted.bam"), path("${meta.sample_id}.sorted.bam.bai"), path(bait_bed), val(reference_config)

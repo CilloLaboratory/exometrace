@@ -82,6 +82,12 @@ workflow {
 
     analysis_mode = readConfigValue(pipeline_config_path, 'analysis.mode')
     reference_fasta = readConfigValue(reference_path.toString(), 'reference.fasta')
+    reference_fasta_path = file(reference_fasta, checkIfExists: true)
+    reference_bwa_index_0123 = file("${reference_fasta}.0123", checkIfExists: true)
+    reference_bwa_index_amb = file("${reference_fasta}.amb", checkIfExists: true)
+    reference_bwa_index_ann = file("${reference_fasta}.ann", checkIfExists: true)
+    reference_bwa_index_bwt = file("${reference_fasta}.bwt.2bit.64", checkIfExists: true)
+    reference_bwa_index_pac = file("${reference_fasta}.pac", checkIfExists: true)
     target_intervals = readConfigValue(reference_path.toString(), 'intervals.interval_list')
     germline_resource = readConfigValue(reference_path.toString(), 'gatk.germline_resource')
     common_snps = readConfigValue(reference_path.toString(), 'gatk.common_snps')
@@ -181,7 +187,7 @@ workflow {
         cfsnv_cfdnaprep = CFSNV_CFDNA_PREP(cfsnv_cfdnaprep_inputs)
 
         ctdna_align_inputs = fastqc_results.map { meta, r1_html, r1_zip, r2_html, r2_zip, r1, r2, bait_bed ->
-            tuple(meta, r1, r2, bait_bed, reference_path.toString(), reference_fasta)
+            tuple(meta, r1, r2, bait_bed, reference_path.toString(), reference_fasta_path, reference_bwa_index_0123, reference_bwa_index_amb, reference_bwa_index_ann, reference_bwa_index_bwt, reference_bwa_index_pac)
         }
         ctdna_aligned = UMI_ALIGN_BWA(ctdna_align_inputs)
 
@@ -270,7 +276,7 @@ workflow {
         fastqc_results = FASTQC(fastqc_inputs)
 
         align_inputs = fastqc_results.map { meta, r1_html, r1_zip, r2_html, r2_zip, r1, r2, bait_bed ->
-            tuple(meta, r1, r2, bait_bed, reference_path.toString(), reference_fasta)
+            tuple(meta, r1, r2, bait_bed, reference_path.toString(), reference_fasta_path, reference_bwa_index_0123, reference_bwa_index_amb, reference_bwa_index_ann, reference_bwa_index_bwt, reference_bwa_index_pac)
         }
         aligned = ALIGN_BWA_MEM2(align_inputs)
 
