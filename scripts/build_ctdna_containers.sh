@@ -50,7 +50,7 @@ main() {
   require_tool singularity
 
   build_one cfsnv 1.0 cfsnv.Dockerfile
-  build_one umi_consensus 1.5.1 umi_consensus.Dockerfile
+  build_one umi_consensus 2.5.1 umi_consensus.Dockerfile
 
   log "Built ctDNA container set into ${CACHE_DIR}"
 }

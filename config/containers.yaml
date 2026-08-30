@@ -52,10 +52,10 @@ tools:
     sif: "containers/sif/cfsnv_1.0.sif"
 
   umi_consensus:
-    version: "1.5.1"
+    version: "2.5.1"
     source: "https://github.com/fulcrumgenomics/fgbio"
-    image: "docker://ghcr.io/example/umi_consensus:1.5.1"
-    sif: "containers/sif/umi_consensus_1.5.1.sif"
+    image: "docker://ghcr.io/example/umi_consensus:2.5.1"
+    sif: "containers/sif/umi_consensus_2.5.1.sif"
 
   deepvariant_cpu:
     version: "1.10.0"
