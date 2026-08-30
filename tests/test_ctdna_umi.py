@@ -168,12 +168,12 @@ class CtDnaWorkflowShapeTests(unittest.TestCase):
         dockerfile_text = (REPO_ROOT / "containers" / "definitions" / "umi_consensus.Dockerfile").read_text(encoding="utf-8")
 
         self.assertIn('samtools fastq ${meta.sample_id}.unmapped.bam', module_text)
-        self.assertIn('bwa mem -t ${task.cpus} -p -K 150000000 -Y ${ref_fasta} -', module_text)
+        self.assertIn('bwa-mem2 mem -t ${task.cpus} -p -K 150000000 -Y ${ref_fasta} -', module_text)
         self.assertIn('samtools sort --template-coordinate --threads ${sort_threads}', module_text)
         self.assertIn('fgbio GroupReadsByUmi', module_text)
         self.assertIn('fgbio CallMolecularConsensusReads', module_text)
         self.assertIn('samtools fastq ${meta.sample_id}.consensus.unmapped.bam', module_text)
-        self.assertIn('bwa=0.7.17', dockerfile_text)
+        self.assertIn('bwa-mem2=2.3', dockerfile_text)
 
 
 if __name__ == "__main__":

@@ -29,7 +29,7 @@ process UMI_GROUP_CONSENSUS {
       --output ${meta.sample_id}.unmapped.bam
 
     samtools fastq ${meta.sample_id}.unmapped.bam \
-      | bwa mem -t ${task.cpus} -p -K 150000000 -Y ${ref_fasta} - \
+      | bwa-mem2 mem -t ${task.cpus} -p -K 150000000 -Y ${ref_fasta} - \
       | fgbio ZipperBams \
           --unmapped ${meta.sample_id}.unmapped.bam \
           --ref ${ref_fasta} \
@@ -54,7 +54,7 @@ process UMI_GROUP_CONSENSUS {
       --error-rate-post-umi=${error_rate_post_umi}
 
     samtools fastq ${meta.sample_id}.consensus.unmapped.bam \
-      | bwa mem -t ${task.cpus} -p -K 150000000 -Y ${ref_fasta} - \
+      | bwa-mem2 mem -t ${task.cpus} -p -K 150000000 -Y ${ref_fasta} - \
       | fgbio ZipperBams \
           --unmapped ${meta.sample_id}.consensus.unmapped.bam \
           --ref ${ref_fasta} \
