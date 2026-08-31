@@ -165,7 +165,8 @@ class CtDnaWorkflowShapeTests(unittest.TestCase):
         markduplicates_text = (REPO_ROOT / "modules" / "markduplicates" / "main.nf").read_text(encoding="utf-8")
 
         self.assertIn('gatk_local_jar = null', nextflow_config_text)
-        self.assertIn('params.gatk_local_jar = "/gatk/gatk-package-4.7.0.0-local.jar"', nextflow_config_text)
+        self.assertNotIn('params.gatk_local_jar = "/gatk/gatk-package-4.7.0.0-local.jar"', nextflow_config_text)
+        self.assertIn('params.gatk_local_jar = null', nextflow_config_text)
         self.assertIn('def gatk_heap_gb = Math.max(2, task.memory.toGiga().intValue() - 4)', mutect2_text)
         self.assertIn('def gatk_cmd = params.gatk_local_jar ? "java -Xms1g -Xmx${gatk_heap_gb}g -jar ${params.gatk_local_jar}" : "gatk --java-options \\"-Xms1g -Xmx${gatk_heap_gb}g\\""', mutect2_text)
         self.assertIn('export JAVA_TOOL_OPTIONS="-Xms1g -Xmx${gatk_heap_gb}g"', mutect2_text)
