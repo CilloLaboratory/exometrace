@@ -1,5 +1,32 @@
 #!/usr/bin/env Rscript
 
+ensure_writable_cfsnv_library <- function() {
+  lib_root <- Sys.getenv("CFSNV_R_LIB_ROOT", "")
+  if (!nzchar(lib_root)) {
+    return(invisible(NULL))
+  }
+
+  dir.create(lib_root, showWarnings = FALSE, recursive = TRUE)
+  source_pkg <- find.package("cfSNV", quiet = TRUE)
+  if (!length(source_pkg)) {
+    stop("cfSNV package is not installed")
+  }
+
+  source_pkg <- source_pkg[[1]]
+  target_pkg <- file.path(lib_root, "cfSNV")
+  if (!dir.exists(target_pkg)) {
+    dir.create(dirname(target_pkg), showWarnings = FALSE, recursive = TRUE)
+    ok <- file.copy(source_pkg, target_pkg, recursive = TRUE)
+    if (!ok) {
+      stop(sprintf("failed to copy cfSNV package from %s to %s", source_pkg, target_pkg))
+    }
+  }
+
+  .libPaths(unique(c(lib_root, .libPaths())))
+  invisible(NULL)
+}
+
+ensure_writable_cfsnv_library()
 suppressPackageStartupMessages(library(cfSNV))
 
 parse_args <- function(argv) {
@@ -49,6 +76,23 @@ tool_path <- function(..., env = NULL) {
     }
   }
   stop(sprintf("required tool not found: %s", paste(c(...), collapse = ", ")))
+}
+
+resolve_java_path <- function() {
+  explicit <- Sys.getenv("CFSNV_JAVA", "")
+  if (nzchar(explicit)) {
+    return(explicit)
+  }
+
+  java_home <- Sys.getenv("JAVA_HOME", "")
+  if (nzchar(java_home)) {
+    candidate <- file.path(java_home, "bin", "java")
+    if (file.exists(candidate)) {
+      return(candidate)
+    }
+  }
+
+  tool_path("java")
 }
 
 read_blocked_positions <- function(path) {
@@ -118,6 +162,8 @@ write_vcf <- function(variant_list, output_path, tumor_sample, normal_sample) {
 run_stdprep <- function(args) {
   output_dir <- normalizePath(require_arg(args, "output_dir"), mustWork = FALSE)
   dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
+  tmpdir <- Sys.getenv("TMPDIR", unset = file.path(output_dir, "tmp"))
+  dir.create(tmpdir, showWarnings = FALSE, recursive = TRUE)
   cfSNV::getbam_align(
     fastq1 = require_arg(args, "fastq1"),
     fastq2 = require_arg(args, "fastq2"),
@@ -130,13 +176,15 @@ run_stdprep <- function(args) {
     bwa.dir = tool_path("bwa"),
     sample.id = require_arg(args, "sample_id"),
     output.dir = output_dir,
-    java.dir = tool_path("java")
+    java.dir = resolve_java_path()
   )
 }
 
 run_cfdnaprep <- function(args) {
   output_dir <- normalizePath(require_arg(args, "output_dir"), mustWork = FALSE)
   dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
+  tmpdir <- Sys.getenv("TMPDIR", unset = file.path(output_dir, "tmp"))
+  dir.create(tmpdir, showWarnings = FALSE, recursive = TRUE)
   cfSNV::getbam_align_after_merge(
     fastq1 = require_arg(args, "fastq1"),
     fastq2 = require_arg(args, "fastq2"),
@@ -150,7 +198,7 @@ run_cfdnaprep <- function(args) {
     flash.dir = tool_path("flash2", "flash"),
     sample.id = require_arg(args, "sample_id"),
     output.dir = output_dir,
-    java.dir = tool_path("java")
+    java.dir = resolve_java_path()
   )
 }
 
@@ -169,7 +217,7 @@ run_detectmuts <- function(args) {
     sample.id = require_arg(args, "sample_id"),
     MIN_HOLD_SUPPORT_COUNT = as.integer(require_arg(args, "min_hold_support")),
     MIN_PASS_SUPPORT_COUNT = as.integer(require_arg(args, "min_pass_support")),
-    java.dir = tool_path("java"),
+    java.dir = resolve_java_path(),
     python.dir = tool_path("python3", "python")
   )
   variant_list <- filter_blocked_positions(results$variant.list, args$blocked_positions)

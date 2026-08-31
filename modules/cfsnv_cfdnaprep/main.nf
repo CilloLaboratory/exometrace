@@ -11,6 +11,12 @@ process CFSNV_CFDNA_PREP {
 
     script:
     """
+    mkdir -p tmp r_libs
+    export TMPDIR="\$PWD/tmp"
+    export CFSNV_R_LIB_ROOT="\$PWD/r_libs"
+    if command -v java >/dev/null 2>&1; then
+      export CFSNV_JAVA="\$(command -v java)"
+    fi
     Rscript ${projectDir}/scripts/cfsnv_wrapper.R cfDNAprep \
       --fastq1 ${plasma_r1} \
       --fastq2 ${plasma_r2} \

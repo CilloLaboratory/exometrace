@@ -2,6 +2,9 @@ FROM mambaorg/micromamba:2.3.2
 
 USER root
 
+RUN micromamba install -y -n base -c conda-forge openjdk=17 \
+    && micromamba clean --all --yes
+
 RUN micromamba create -y -n cfsnv -c conda-forge -c bioconda \
     r-base=4.0 \
     r-rcpp \
@@ -39,6 +42,7 @@ RUN mkdir -p /usr/local/share/cfsnv-tools /opt/gatk3 \
 
 ENV CFSNV_PICARD_JAR=/usr/local/share/cfsnv-tools/picard.jar
 ENV CFSNV_GATK_JAR=/usr/local/share/cfsnv-tools/GenomeAnalysisTK.jar
+ENV JAVA_HOME=/opt/conda
 
 RUN curl -fsSL -o /tmp/cfSNV_0.99.0.tar.gz \
       https://github.com/jasminezhoulab/cfSNV/raw/main/cfSNV_0.99.0.tar.gz \
