@@ -151,6 +151,11 @@ class CtDnaWorkflowShapeTests(unittest.TestCase):
         markduplicates_text = (REPO_ROOT / "modules" / "markduplicates" / "main.nf").read_text(encoding="utf-8")
 
         self.assertIn('def gatk_heap_gb = Math.max(2, task.memory.toGiga().intValue() - 4)', mutect2_text)
+        self.assertIn('export JAVA_TOOL_OPTIONS="-Xms1g -Xmx${gatk_heap_gb}g"', mutect2_text)
+        self.assertIn('export JAVA_TOOL_OPTIONS="-Xms1g -Xmx${gatk_heap_gb}g"', ctdna_mutect2_text)
+        self.assertIn('export JAVA_TOOL_OPTIONS="-Xms1g -Xmx${gatk_heap_gb}g"', filter_mutect_text)
+        self.assertIn('export JAVA_TOOL_OPTIONS="-Xms1g -Xmx${gatk_heap_gb}g"', alignment_qc_text)
+        self.assertIn('export JAVA_TOOL_OPTIONS="-Xms1g -Xmx${gatk_heap_gb}g"', markduplicates_text)
         self.assertIn('gatk --java-options "-Xms1g -Xmx${gatk_heap_gb}g" GetPileupSummaries', mutect2_text)
         self.assertIn('gatk --java-options "-Xms1g -Xmx${gatk_heap_gb}g" GetPileupSummaries', ctdna_mutect2_text)
         self.assertIn('gatk --java-options "-Xms1g -Xmx${gatk_heap_gb}g" FilterMutectCalls', filter_mutect_text)

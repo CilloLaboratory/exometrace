@@ -15,6 +15,7 @@ process ALIGNMENT_QC {
     """
     samtools flagstat ${bam} > ${meta.sample_id}.flagstat.txt
     samtools stats ${bam} > ${meta.sample_id}.stats.txt
+    export JAVA_TOOL_OPTIONS="-Xms1g -Xmx${gatk_heap_gb}g"
     gatk --java-options "-Xms1g -Xmx${gatk_heap_gb}g" CollectAlignmentSummaryMetrics \
       -R ${ref_fasta} \
       -I ${bam} \

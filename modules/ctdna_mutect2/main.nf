@@ -12,6 +12,7 @@ process CTDNA_MUTECT2 {
     script:
     def gatk_heap_gb = Math.max(2, task.memory.toGiga().intValue() - 4)
     """
+    export JAVA_TOOL_OPTIONS="-Xms1g -Xmx${gatk_heap_gb}g"
     gatk --java-options "-Xms1g -Xmx${gatk_heap_gb}g" Mutect2 \
       -R ${ref_fasta} \
       -I ${tumor_bam} \
@@ -54,6 +55,7 @@ process CTDNA_FILTER_MUTECT2 {
     script:
     def gatk_heap_gb = Math.max(2, task.memory.toGiga().intValue() - 2)
     """
+    export JAVA_TOOL_OPTIONS="-Xms1g -Xmx${gatk_heap_gb}g"
     gatk --java-options "-Xms1g -Xmx${gatk_heap_gb}g" CalculateContamination \
       -I ${tumor_pileups} \
       -matched ${normal_pileups} \
