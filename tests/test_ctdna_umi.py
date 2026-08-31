@@ -12,6 +12,10 @@ from scripts.trim_ctdna_template import parse_read_structure
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
+def available_java_heap_gb(process_memory_gb: int, reserve_gb: int = 4) -> int:
+    return max(2, process_memory_gb - reserve_gb)
+
+
 class CtDnaTemplateTrimTests(unittest.TestCase):
     def test_parse_read_structure_returns_roche_trim_length(self) -> None:
         parsed = parse_read_structure("3M3S+T")
@@ -181,6 +185,27 @@ class CtDnaWorkflowShapeTests(unittest.TestCase):
         self.assertIn('${gatk_cmd} FilterMutectCalls', filter_mutect_text)
         self.assertIn('gatk --java-options "-Xms1g -Xmx${gatk_heap_gb}g" CollectAlignmentSummaryMetrics', alignment_qc_text)
         self.assertIn('${gatk_cmd} MarkDuplicates', markduplicates_text)
+
+    def test_legacy_local_jar_override_reproduces_ctdna_heap_failure_condition(self) -> None:
+        # This encodes the failure shape observed in the log:
+        # active profile forces the local GATK jar, CTDNA_MUTECT2 uses raw java,
+        # and GetPileupSummaries is invoked on the tabix-indexed common SNPs resource.
+        legacy_config_text = 'params.gatk_local_jar = "/gatk/gatk-package-4.7.0.0-local.jar"'
+        ctdna_mutect2_text = (REPO_ROOT / "modules" / "ctdna_mutect2" / "main.nf").read_text(encoding="utf-8")
+        java_heap_gb = available_java_heap_gb(32)
+        heap_metric = f"java_heap_available_gb={java_heap_gb}"
+        print(heap_metric)
+
+        self.assertIn('params.gatk_local_jar = null', (REPO_ROOT / "nextflow.config").read_text(encoding="utf-8"))
+        self.assertIn('/gatk/gatk-package-4.7.0.0-local.jar', legacy_config_text)
+        self.assertIn('def gatk_cmd = params.gatk_local_jar ? "java -Xms1g -Xmx${gatk_heap_gb}g -jar ${params.gatk_local_jar}" : "gatk --java-options \\"-Xms1g -Xmx${gatk_heap_gb}g\\""', ctdna_mutect2_text)
+        self.assertIn('${gatk_cmd} GetPileupSummaries -I ${tumor_bam} -V ${common_snps} -L ${target_intervals}', ctdna_mutect2_text)
+        self.assertIn('${gatk_cmd} GetPileupSummaries -I ${normal_bam} -V ${common_snps} -L ${target_intervals}', ctdna_mutect2_text)
+        self.assertEqual(heap_metric, "java_heap_available_gb=28")
+        self.assertEqual(
+            f'java -Xms1g -Xmx{java_heap_gb}g -jar /gatk/gatk-package-4.7.0.0-local.jar',
+            'java -Xms1g -Xmx28g -jar /gatk/gatk-package-4.7.0.0-local.jar',
+        )
 
     def test_umi_consensus_sets_explicit_java_heap(self) -> None:
         module_text = (REPO_ROOT / "modules" / "umi_consensus" / "main.nf").read_text(encoding="utf-8")

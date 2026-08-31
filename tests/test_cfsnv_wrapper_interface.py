@@ -61,6 +61,7 @@ class CfSnvWrapperInterfaceTests(unittest.TestCase):
         self.assertIn('ensure_writable_cfsnv_library <- function()', wrapper_text)
         self.assertIn('Sys.getenv("CFSNV_R_LIB_ROOT", "")', wrapper_text)
         self.assertIn('file.copy(source_pkg, target_pkg, recursive = TRUE)', wrapper_text)
+        self.assertIn('library("cfSNV", lib.loc = lib_root, character.only = TRUE)', wrapper_text)
         self.assertIn('resolve_java_path <- function()', wrapper_text)
         self.assertIn('Sys.getenv("JAVA_HOME", "")', wrapper_text)
         self.assertIn('tool_path("java", default_paths = c("/opt/conda/bin/java", "/usr/bin/java"))', wrapper_text)

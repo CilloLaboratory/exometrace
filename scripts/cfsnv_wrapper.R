@@ -23,11 +23,11 @@ ensure_writable_cfsnv_library <- function() {
   }
 
   .libPaths(unique(c(lib_root, .libPaths())))
+  suppressPackageStartupMessages(library("cfSNV", lib.loc = lib_root, character.only = TRUE))
   invisible(NULL)
 }
 
 ensure_writable_cfsnv_library()
-suppressPackageStartupMessages(library(cfSNV))
 
 parse_args <- function(argv) {
   if (length(argv) == 0) {
