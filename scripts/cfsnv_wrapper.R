@@ -13,12 +13,11 @@ ensure_writable_cfsnv_library <- function() {
   }
 
   source_pkg <- source_pkg[[1]]
-  target_pkg <- file.path(lib_root, "cfSNV")
+  target_pkg <- file.path(lib_root, basename(source_pkg))
   if (!dir.exists(target_pkg)) {
-    dir.create(dirname(target_pkg), showWarnings = FALSE, recursive = TRUE)
-    ok <- file.copy(source_pkg, target_pkg, recursive = TRUE)
+    ok <- file.copy(source_pkg, lib_root, recursive = TRUE)
     if (!ok) {
-      stop(sprintf("failed to copy cfSNV package from %s to %s", source_pkg, target_pkg))
+      stop(sprintf("failed to copy cfSNV package from %s to %s", source_pkg, lib_root))
     }
   }
 
