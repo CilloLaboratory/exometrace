@@ -1,5 +1,6 @@
 process FASTQC {
     label 'cpu_small'
+    cache 'deep'
     publishDir "${params.results_dir}/qc/fastqc", mode: 'copy'
     container { params.qc_container }
 

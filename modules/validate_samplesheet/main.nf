@@ -1,5 +1,6 @@
 process VALIDATE_SAMPLESHEET {
     label 'cpu_small'
+    cache 'deep'
     publishDir "${params.results_dir}/provenance", mode: 'copy'
 
     input:

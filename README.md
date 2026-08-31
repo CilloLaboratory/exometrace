@@ -252,6 +252,47 @@ NXF_OFFLINE=true NXF_DISABLE_CHECK_LATEST=true ./bin/nextflow run main.nf \
   -profile arc85_workstation
 ```
 
+### Rerun and resume
+
+For reruns, prefer `-resume` and keep the launch inputs stable:
+
+```bash
+NXF_OFFLINE=true NXF_DISABLE_CHECK_LATEST=true ./bin/nextflow run main.nf \
+  --samplesheet /absolute/path/to/samplesheet.csv \
+  --reference_config /absolute/path/to/config/references.yaml \
+  --pipeline_config /absolute/path/to/config/default.yaml \
+  -profile arc85_workstation \
+  -resume
+```
+
+To maximize cache reuse:
+
+- run from the same repository checkout
+- keep the same `work/` directory
+- keep the same profile
+- keep the same absolute paths for `--samplesheet`, `--reference_config`, and `--pipeline_config`
+- keep the same container versions and sandbox/SIF paths
+
+What should resume reliably now:
+
+- `VALIDATE_SAMPLESHEET`
+- `VALIDATE_REFERENCE`
+- `FASTQ_VALIDATE`
+- `FASTQC`
+- `UMI_TEMPLATE_TRIM`
+
+Those early immutable steps use `cache 'deep'`, so unchanged input file contents can be reused even if file mtimes changed.
+
+What still invalidates cache by design:
+
+- editing `main.nf` or any module script
+- changing container paths or versions
+- changing config values that feed a process
+- deleting `work/` or `.nextflow/`
+- switching profiles or running from a different clone/location
+
+If a single task fails, rerun with `-resume` after patching. Nextflow should regenerate the failed task and any downstream tasks while reusing successful upstream results.
+
 For a real end-to-end smoke test on this machine, use the tiny fixture sheet with real references:
 
 ```bash

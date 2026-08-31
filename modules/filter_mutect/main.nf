@@ -11,19 +11,22 @@ process FILTER_MUTECT {
 
     script:
     def gatk_heap_gb = Math.max(2, task.memory.toGiga().intValue() - 2)
+    def gatk_cmd = params.gatk_local_jar ? "java -Xms1g -Xmx${gatk_heap_gb}g -jar ${params.gatk_local_jar}" : "gatk --java-options \"-Xms1g -Xmx${gatk_heap_gb}g\""
     """
     export JAVA_TOOL_OPTIONS="-Xms1g -Xmx${gatk_heap_gb}g"
-    gatk --java-options "-Xms1g -Xmx${gatk_heap_gb}g" CalculateContamination \
+    export JAVA_OPTS="-Xms1g -Xmx${gatk_heap_gb}g"
+    export GATK_JAVA_OPTIONS="-Xms1g -Xmx${gatk_heap_gb}g"
+    ${gatk_cmd} CalculateContamination \
       -I ${tumor_pileups} \
       -matched ${normal_pileups} \
       -O ${meta.patient_id}.contamination.table \
       --tumor-segmentation ${meta.patient_id}.segments.table
 
-    gatk --java-options "-Xms1g -Xmx${gatk_heap_gb}g" LearnReadOrientationModel \
+    ${gatk_cmd} LearnReadOrientationModel \
       -I ${f1r2_tar} \
       -O ${meta.patient_id}.artifact-priors.tar.gz
 
-    gatk --java-options "-Xms1g -Xmx${gatk_heap_gb}g" FilterMutectCalls \
+    ${gatk_cmd} FilterMutectCalls \
       -V ${unfiltered_vcf} \
       -R ${ref_fasta} \
       --stats ${stats_file} \

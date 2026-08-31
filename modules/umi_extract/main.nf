@@ -1,5 +1,6 @@
 process UMI_TEMPLATE_TRIM {
     label 'cpu_small'
+    cache 'deep'
     publishDir "${params.results_dir}/ctdna/qc", mode: 'copy', pattern: "*.template_trim.tsv"
 
     input:

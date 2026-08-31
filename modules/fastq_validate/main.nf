@@ -1,5 +1,6 @@
 process FASTQ_VALIDATE {
     label 'cpu_small'
+    cache 'deep'
     publishDir "${params.results_dir}/qc/fastq_validation", mode: 'copy'
 
     input:

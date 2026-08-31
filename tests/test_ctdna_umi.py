@@ -93,6 +93,19 @@ class CtDnaWorkflowShapeTests(unittest.TestCase):
         self.assertIn("ctdna_read_structure_r2", workflow_text)
         self.assertIn("tuple(meta, r1, r2, bait_bed, reference_path.toString(), reference_fasta_path, reference_fasta_index_path, reference_fasta_dict_path", workflow_text)
 
+    def test_early_immutable_steps_use_deep_cache(self) -> None:
+        validate_samplesheet_text = (REPO_ROOT / "modules" / "validate_samplesheet" / "main.nf").read_text(encoding="utf-8")
+        validate_reference_text = (REPO_ROOT / "modules" / "validate_reference" / "main.nf").read_text(encoding="utf-8")
+        fastq_validate_text = (REPO_ROOT / "modules" / "fastq_validate" / "main.nf").read_text(encoding="utf-8")
+        fastqc_text = (REPO_ROOT / "modules" / "fastqc" / "main.nf").read_text(encoding="utf-8")
+        umi_trim_text = (REPO_ROOT / "modules" / "umi_extract" / "main.nf").read_text(encoding="utf-8")
+
+        self.assertIn("cache 'deep'", validate_samplesheet_text)
+        self.assertIn("cache 'deep'", validate_reference_text)
+        self.assertIn("cache 'deep'", fastq_validate_text)
+        self.assertIn("cache 'deep'", fastqc_text)
+        self.assertIn("cache 'deep'", umi_trim_text)
+
     def test_bwa_alignment_stages_reference_sidecars(self) -> None:
         workflow_text = (REPO_ROOT / "main.nf").read_text(encoding="utf-8")
         align_module_text = (REPO_ROOT / "modules" / "align" / "main.nf").read_text(encoding="utf-8")
@@ -144,23 +157,29 @@ class CtDnaWorkflowShapeTests(unittest.TestCase):
         self.assertIn('path(arms_bed)', arm_level_text)
 
     def test_gatk_modules_set_explicit_java_heap(self) -> None:
+        nextflow_config_text = (REPO_ROOT / "nextflow.config").read_text(encoding="utf-8")
         mutect2_text = (REPO_ROOT / "modules" / "mutect2" / "main.nf").read_text(encoding="utf-8")
         ctdna_mutect2_text = (REPO_ROOT / "modules" / "ctdna_mutect2" / "main.nf").read_text(encoding="utf-8")
         filter_mutect_text = (REPO_ROOT / "modules" / "filter_mutect" / "main.nf").read_text(encoding="utf-8")
         alignment_qc_text = (REPO_ROOT / "modules" / "alignment_qc" / "main.nf").read_text(encoding="utf-8")
         markduplicates_text = (REPO_ROOT / "modules" / "markduplicates" / "main.nf").read_text(encoding="utf-8")
 
+        self.assertIn('gatk_local_jar = null', nextflow_config_text)
+        self.assertIn('params.gatk_local_jar = "/gatk/gatk-package-4.7.0.0-local.jar"', nextflow_config_text)
         self.assertIn('def gatk_heap_gb = Math.max(2, task.memory.toGiga().intValue() - 4)', mutect2_text)
+        self.assertIn('def gatk_cmd = params.gatk_local_jar ? "java -Xms1g -Xmx${gatk_heap_gb}g -jar ${params.gatk_local_jar}" : "gatk --java-options \\"-Xms1g -Xmx${gatk_heap_gb}g\\""', mutect2_text)
         self.assertIn('export JAVA_TOOL_OPTIONS="-Xms1g -Xmx${gatk_heap_gb}g"', mutect2_text)
+        self.assertIn('export JAVA_OPTS="-Xms1g -Xmx${gatk_heap_gb}g"', mutect2_text)
+        self.assertIn('export GATK_JAVA_OPTIONS="-Xms1g -Xmx${gatk_heap_gb}g"', mutect2_text)
         self.assertIn('export JAVA_TOOL_OPTIONS="-Xms1g -Xmx${gatk_heap_gb}g"', ctdna_mutect2_text)
         self.assertIn('export JAVA_TOOL_OPTIONS="-Xms1g -Xmx${gatk_heap_gb}g"', filter_mutect_text)
         self.assertIn('export JAVA_TOOL_OPTIONS="-Xms1g -Xmx${gatk_heap_gb}g"', alignment_qc_text)
         self.assertIn('export JAVA_TOOL_OPTIONS="-Xms1g -Xmx${gatk_heap_gb}g"', markduplicates_text)
-        self.assertIn('gatk --java-options "-Xms1g -Xmx${gatk_heap_gb}g" GetPileupSummaries', mutect2_text)
-        self.assertIn('gatk --java-options "-Xms1g -Xmx${gatk_heap_gb}g" GetPileupSummaries', ctdna_mutect2_text)
-        self.assertIn('gatk --java-options "-Xms1g -Xmx${gatk_heap_gb}g" FilterMutectCalls', filter_mutect_text)
+        self.assertIn('${gatk_cmd} GetPileupSummaries', mutect2_text)
+        self.assertIn('${gatk_cmd} GetPileupSummaries', ctdna_mutect2_text)
+        self.assertIn('${gatk_cmd} FilterMutectCalls', filter_mutect_text)
         self.assertIn('gatk --java-options "-Xms1g -Xmx${gatk_heap_gb}g" CollectAlignmentSummaryMetrics', alignment_qc_text)
-        self.assertIn('gatk --java-options "-Xms1g -Xmx${gatk_heap_gb}g" MarkDuplicates', markduplicates_text)
+        self.assertIn('${gatk_cmd} MarkDuplicates', markduplicates_text)
 
     def test_umi_consensus_sets_explicit_java_heap(self) -> None:
         module_text = (REPO_ROOT / "modules" / "umi_consensus" / "main.nf").read_text(encoding="utf-8")

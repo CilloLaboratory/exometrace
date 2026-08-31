@@ -11,9 +11,12 @@ process MARK_DUPLICATES {
 
     script:
     def gatk_heap_gb = Math.max(2, task.memory.toGiga().intValue() - 4)
+    def gatk_cmd = params.gatk_local_jar ? "java -Xms1g -Xmx${gatk_heap_gb}g -jar ${params.gatk_local_jar}" : "gatk --java-options \"-Xms1g -Xmx${gatk_heap_gb}g\""
     """
     export JAVA_TOOL_OPTIONS="-Xms1g -Xmx${gatk_heap_gb}g"
-    gatk --java-options "-Xms1g -Xmx${gatk_heap_gb}g" MarkDuplicates \
+    export JAVA_OPTS="-Xms1g -Xmx${gatk_heap_gb}g"
+    export GATK_JAVA_OPTIONS="-Xms1g -Xmx${gatk_heap_gb}g"
+    ${gatk_cmd} MarkDuplicates \
       -I ${bam} \
       -O ${meta.sample_id}.markdup.bam \
       -M ${meta.sample_id}.duplicate_metrics.txt \
