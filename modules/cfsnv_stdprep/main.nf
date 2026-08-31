@@ -14,9 +14,9 @@ process CFSNV_STD_PREP {
     mkdir -p tmp r_libs
     export TMPDIR="\$PWD/tmp"
     export CFSNV_R_LIB_ROOT="\$PWD/r_libs"
-    if command -v java >/dev/null 2>&1; then
-      export CFSNV_JAVA="\$(command -v java)"
-    fi
+    export CFSNV_JAVA="/opt/conda/bin/java"
+    export CFSNV_PICARD_JAR="/usr/local/share/cfsnv-tools/picard.jar"
+    export CFSNV_GATK_JAR="/usr/local/share/cfsnv-tools/GenomeAnalysisTK.jar"
     Rscript ${projectDir}/scripts/cfsnv_wrapper.R STDprep \
       --fastq1 ${plasma_r1} \
       --fastq2 ${plasma_r2} \

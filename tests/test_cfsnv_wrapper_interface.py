@@ -14,6 +14,9 @@ class CfSnvWrapperInterfaceTests(unittest.TestCase):
         self.assertIn("--snp-database ${snp_database}", module_text)
         self.assertIn('export TMPDIR="\\$PWD/tmp"', module_text)
         self.assertIn('export CFSNV_R_LIB_ROOT="\\$PWD/r_libs"', module_text)
+        self.assertIn('export CFSNV_JAVA="/opt/conda/bin/java"', module_text)
+        self.assertIn('export CFSNV_PICARD_JAR="/usr/local/share/cfsnv-tools/picard.jar"', module_text)
+        self.assertIn('export CFSNV_GATK_JAR="/usr/local/share/cfsnv-tools/GenomeAnalysisTK.jar"', module_text)
 
     def test_cfdnaprep_module_uses_r_wrapper(self) -> None:
         module_text = (REPO_ROOT / "modules" / "cfsnv_cfdnaprep" / "main.nf").read_text(encoding="utf-8")
@@ -22,6 +25,9 @@ class CfSnvWrapperInterfaceTests(unittest.TestCase):
         self.assertIn("--snp-database ${snp_database}", module_text)
         self.assertIn('export TMPDIR="\\$PWD/tmp"', module_text)
         self.assertIn('export CFSNV_R_LIB_ROOT="\\$PWD/r_libs"', module_text)
+        self.assertIn('export CFSNV_JAVA="/opt/conda/bin/java"', module_text)
+        self.assertIn('export CFSNV_PICARD_JAR="/usr/local/share/cfsnv-tools/picard.jar"', module_text)
+        self.assertIn('export CFSNV_GATK_JAR="/usr/local/share/cfsnv-tools/GenomeAnalysisTK.jar"', module_text)
 
     def test_detectmuts_module_uses_r_wrapper(self) -> None:
         module_text = (REPO_ROOT / "modules" / "ctdna_mutect2" / "main.nf").read_text(encoding="utf-8")
@@ -43,11 +49,12 @@ class CfSnvWrapperInterfaceTests(unittest.TestCase):
         dockerfile = (REPO_ROOT / "containers" / "definitions" / "cfsnv.Dockerfile").read_text(encoding="utf-8")
         self.assertIn("micromamba create -y -n cfsnv", dockerfile)
         self.assertIn("openjdk=17", dockerfile)
+        self.assertIn("micromamba install -y -n base -c conda-forge openjdk=17", dockerfile)
         self.assertIn("boost-cpp", dockerfile)
         self.assertIn("GenomeAnalysisTK-3.8-1-0-gf15c1c3ef.tar.bz2", dockerfile)
         self.assertIn("picard-2.18.4.jar", dockerfile)
         self.assertIn("cfSNV_0.99.0.tar.gz", dockerfile)
-        self.assertIn("ENV JAVA_HOME=/opt/conda/envs/cfsnv", dockerfile)
+        self.assertIn("ENV JAVA_HOME=/opt/conda", dockerfile)
 
     def test_wrapper_copies_cfsnv_to_writable_library_and_resolves_java(self) -> None:
         wrapper_text = (REPO_ROOT / "scripts" / "cfsnv_wrapper.R").read_text(encoding="utf-8")
@@ -56,7 +63,11 @@ class CfSnvWrapperInterfaceTests(unittest.TestCase):
         self.assertIn('file.copy(source_pkg, target_pkg, recursive = TRUE)', wrapper_text)
         self.assertIn('resolve_java_path <- function()', wrapper_text)
         self.assertIn('Sys.getenv("JAVA_HOME", "")', wrapper_text)
-        self.assertIn('tool_path("java")', wrapper_text)
+        self.assertIn('tool_path("java", default_paths = c("/opt/conda/bin/java", "/usr/bin/java"))', wrapper_text)
+        self.assertIn('resolve_picard_path <- function()', wrapper_text)
+        self.assertIn('resolve_gatk3_path <- function()', wrapper_text)
+        self.assertIn('default_paths = c("/usr/local/share/cfsnv-tools/picard.jar")', wrapper_text)
+        self.assertIn('default_paths = c("/usr/local/share/cfsnv-tools/GenomeAnalysisTK.jar", "/opt/gatk3/GenomeAnalysisTK.jar")', wrapper_text)
 
 
 if __name__ == "__main__":

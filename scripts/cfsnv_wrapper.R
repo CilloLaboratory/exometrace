@@ -62,11 +62,16 @@ require_arg <- function(args, key) {
   value
 }
 
-tool_path <- function(..., env = NULL) {
+tool_path <- function(..., env = NULL, default_paths = character()) {
   if (!is.null(env)) {
     env_value <- Sys.getenv(env, "")
     if (nzchar(env_value)) {
       return(env_value)
+    }
+  }
+  for (candidate in default_paths) {
+    if (nzchar(candidate) && file.exists(candidate)) {
+      return(candidate)
     }
   }
   for (candidate in c(...)) {
@@ -75,7 +80,8 @@ tool_path <- function(..., env = NULL) {
       return(path)
     }
   }
-  stop(sprintf("required tool not found: %s", paste(c(...), collapse = ", ")))
+  known_paths <- c(c(...), default_paths)
+  stop(sprintf("required tool not found: %s", paste(known_paths[nzchar(known_paths)], collapse = ", ")))
 }
 
 resolve_java_path <- function() {
@@ -92,7 +98,21 @@ resolve_java_path <- function() {
     }
   }
 
-  tool_path("java")
+  tool_path("java", default_paths = c("/opt/conda/bin/java", "/usr/bin/java"))
+}
+
+resolve_picard_path <- function() {
+  tool_path(
+    env = "CFSNV_PICARD_JAR",
+    default_paths = c("/usr/local/share/cfsnv-tools/picard.jar")
+  )
+}
+
+resolve_gatk3_path <- function() {
+  tool_path(
+    env = "CFSNV_GATK_JAR",
+    default_paths = c("/usr/local/share/cfsnv-tools/GenomeAnalysisTK.jar", "/opt/gatk3/GenomeAnalysisTK.jar")
+  )
 }
 
 read_blocked_positions <- function(path) {
@@ -170,9 +190,9 @@ run_stdprep <- function(args) {
     reference = require_arg(args, "reference"),
     SNP.database = require_arg(args, "snp_database"),
     samtools.dir = tool_path("samtools"),
-    picard.dir = tool_path(env = "CFSNV_PICARD_JAR"),
+    picard.dir = resolve_picard_path(),
     bedtools.dir = tool_path("bedtools"),
-    GATK.dir = tool_path(env = "CFSNV_GATK_JAR"),
+    GATK.dir = resolve_gatk3_path(),
     bwa.dir = tool_path("bwa"),
     sample.id = require_arg(args, "sample_id"),
     output.dir = output_dir,
@@ -191,9 +211,9 @@ run_cfdnaprep <- function(args) {
     reference = require_arg(args, "reference"),
     SNP.database = require_arg(args, "snp_database"),
     samtools.dir = tool_path("samtools"),
-    picard.dir = tool_path(env = "CFSNV_PICARD_JAR"),
+    picard.dir = resolve_picard_path(),
     bedtools.dir = tool_path("bedtools"),
-    GATK.dir = tool_path(env = "CFSNV_GATK_JAR"),
+    GATK.dir = resolve_gatk3_path(),
     bwa.dir = tool_path("bwa"),
     flash.dir = tool_path("flash2", "flash"),
     sample.id = require_arg(args, "sample_id"),
@@ -212,7 +232,7 @@ run_detectmuts <- function(args) {
     reference = require_arg(args, "reference"),
     SNP.database = require_arg(args, "snp_database"),
     samtools.dir = tool_path("samtools"),
-    picard.dir = tool_path(env = "CFSNV_PICARD_JAR"),
+    picard.dir = resolve_picard_path(),
     bedtools.dir = tool_path("bedtools"),
     sample.id = require_arg(args, "sample_id"),
     MIN_HOLD_SUPPORT_COUNT = as.integer(require_arg(args, "min_hold_support")),
