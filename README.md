@@ -135,6 +135,8 @@ references/
     │   ├── af-only-gnomad.vcf.gz
     │   ├── common_biallelic_snps.vcf.gz
     │   └── panel_of_normals.vcf.gz
+    ├── cfsnv/
+    │   └── blocked_positions.vcf.gz
     ├── vep/
     │   └── cache/
     └── annotations/
@@ -154,6 +156,7 @@ The validator now checks real-run prerequisites, including:
 
 - BWA-MEM2 sidecar indexes for the configured FASTA
 - indexed GATK resource VCFs
+- derived cfSNV blocked-position blacklist restricted to the configured assay targets
 - populated offline VEP cache
 - provisioned SigProfiler asset volume
 - non-placeholder interval and annotation tables suitable for a real WES run

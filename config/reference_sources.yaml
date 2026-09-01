@@ -63,6 +63,10 @@ derived:
     source_vcf: "references/GRCh38/gatk/af-only-gnomad.vcf.gz"
     path: "references/GRCh38/gatk/common_biallelic_snps.vcf.gz"
     min_af: 0.01
+  cfsnv_blocked_positions:
+    source_vcf: "references/GRCh38/gatk/common_biallelic_snps.vcf.gz"
+    targets_bed: "references/GRCh38/intervals/exome_targets.bed"
+    path: "references/GRCh38/cfsnv/blocked_positions.vcf.gz"
   sigprofiler:
     genome_build: "GRCh38"
     volume_dir: "references/GRCh38/sigprofiler"

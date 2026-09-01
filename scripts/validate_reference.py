@@ -79,6 +79,10 @@ def extra_requirements(label: str, path: Path, analysis_mode: str) -> list[tuple
                 checks.append((f"{label}{suffix}", Path(f"{path}{suffix}"), "file"))
     if label.startswith("gatk.") and path.suffixes[-2:] == [".vcf", ".gz"]:
         checks.append((f"{label}.index", Path(f"{path}.tbi"), "file_or_alt_index"))
+    if label == "gatk.common_snps":
+        checks.append((label, path, "min_lines:1"))
+    if label == "cfsnv.blocked_positions_vcf":
+        checks.append((label, path, "min_lines:1"))
     if label == "vep.cache_dir":
         checks.append((label, path, "nonempty_dir"))
     if label == "sigprofiler.volume_dir":

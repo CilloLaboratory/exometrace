@@ -57,6 +57,14 @@ class CfSnvWrapperInterfaceTests(unittest.TestCase):
         self.assertIn("cfSNV_0.99.0.tar.gz", dockerfile)
         self.assertIn("ENV JAVA_HOME=/opt/conda", dockerfile)
 
+    def test_bootstrap_derives_cfsnv_blacklist_from_common_snps_and_targets(self) -> None:
+        bootstrap_text = (REPO_ROOT / "scripts" / "bootstrap_references.sh").read_text(encoding="utf-8")
+        self.assertIn("ensure_cfsnv_blocked_positions()", bootstrap_text)
+        self.assertIn('log "Deriving cfSNV blocked-position blacklist from ${source_vcf} on targets ${targets_bed}"', bootstrap_text)
+        self.assertIn('bcftools view \\', bootstrap_text)
+        self.assertIn('-R "${targets_bed}" \\', bootstrap_text)
+        self.assertIn('ensure_cfsnv_blocked_positions "${PROJECT_DIR}/${common_path}" "${PROJECT_DIR}/${targets_bed}" "${PROJECT_DIR}/${cfsnv_blocked_path}"', bootstrap_text)
+
     def test_wrapper_copies_cfsnv_to_writable_library_and_resolves_java(self) -> None:
         wrapper_text = (REPO_ROOT / "scripts" / "cfsnv_wrapper.R").read_text(encoding="utf-8")
         self.assertIn('ensure_writable_cfsnv_library <- function()', wrapper_text)

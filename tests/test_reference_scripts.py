@@ -1,6 +1,8 @@
 import tempfile
 import unittest
 
+import gzip
+
 from pathlib import Path
 
 from scripts.validate_reference import main as validate_reference_main
@@ -9,6 +11,12 @@ from scripts.validate_reference import main as validate_reference_main
 def write_file(path: Path, content: str = "x") -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
+
+
+def write_gzip_file(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with gzip.open(path, "wt", encoding="utf-8") as handle:
+        handle.write(content)
 
 
 class ReferenceValidationTests(unittest.TestCase):
@@ -78,7 +86,12 @@ class ReferenceValidationTests(unittest.TestCase):
             "gatk/common_biallelic_snps.vcf.gz",
             "gatk/panel_of_normals.vcf.gz",
         ]:
-            write_file(ref_root / relative)
+            write_gzip_file(
+                ref_root / relative,
+                "##fileformat=VCFv4.2\n"
+                "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n"
+                "chr1\t100\t.\tA\tT\t60\tPASS\tAF=0.05\n",
+            )
             write_file(ref_root / f"{relative}.tbi")
         write_file(ref_root / "vep/cache/homo_sapiens_vep_116_GRCh38/README", "cache\n")
         write_file(ref_root / "sigprofiler/tsb/GRCh38/README", "sig\n")
@@ -130,7 +143,12 @@ class ReferenceValidationTests(unittest.TestCase):
                 + "  blocked_positions_index: references/GRCh38/cfsnv/blocked_positions.vcf.gz.tbi\n",
                 encoding="utf-8",
             )
-            write_file(root / "references" / "GRCh38" / "cfsnv" / "blocked_positions.vcf.gz")
+            write_gzip_file(
+                root / "references" / "GRCh38" / "cfsnv" / "blocked_positions.vcf.gz",
+                "##fileformat=VCFv4.2\n"
+                "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n"
+                "chr1\t200\t.\tC\tG\t60\tPASS\tAF=0.05\n",
+            )
             write_file(root / "references" / "GRCh38" / "cfsnv" / "blocked_positions.vcf.gz.tbi")
             pipeline_config = root / "config" / "default.yaml"
             pipeline_config.write_text("analysis:\n  mode: ctdna_umi\n", encoding="utf-8")
@@ -190,3 +208,21 @@ class ReferenceValidationTests(unittest.TestCase):
             pipeline_config = root / "config" / "default.yaml"
             pipeline_config.write_text("analysis:\n  mode: ctdna_umi\n", encoding="utf-8")
             self.assertEqual(self.run_validator_with_pipeline(config, pipeline_config), 1)
+
+    def test_validator_rejects_empty_common_snps_vcf(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            root = Path(tempdir)
+            config = self.build_config(root)
+            self.populate_valid_tree(root)
+            write_gzip_file(
+                root / "references" / "GRCh38" / "gatk" / "common_biallelic_snps.vcf.gz",
+                "##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n",
+            )
+            self.assertEqual(self.run_validator(config), 1)
+
+    def test_reference_source_manifest_declares_cfsnv_blacklist_derivation(self) -> None:
+        manifest_text = (Path(__file__).resolve().parents[1] / "config" / "reference_sources.yaml").read_text(encoding="utf-8")
+        self.assertIn("cfsnv_blocked_positions:", manifest_text)
+        self.assertIn('source_vcf: "references/GRCh38/gatk/common_biallelic_snps.vcf.gz"', manifest_text)
+        self.assertIn('targets_bed: "references/GRCh38/intervals/exome_targets.bed"', manifest_text)
+        self.assertIn('path: "references/GRCh38/cfsnv/blocked_positions.vcf.gz"', manifest_text)

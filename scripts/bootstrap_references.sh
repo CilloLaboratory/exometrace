@@ -87,6 +87,23 @@ ensure_tabix_index() {
   fail "Unable to index ${vcf_gz}. Install bcftools or provide Docker."
 }
 
+count_vcf_records() {
+  local vcf_gz=$1
+  python3 - "$vcf_gz" <<'PY'
+from pathlib import Path
+import gzip
+import sys
+
+path = Path(sys.argv[1])
+count = 0
+with gzip.open(path, "rt", encoding="utf-8") as handle:
+    for line in handle:
+        if line.strip() and not line.startswith("#"):
+            count += 1
+print(count)
+PY
+}
+
 ensure_bwa_index() {
   local fasta=$1
   local prefix=$2
@@ -119,12 +136,15 @@ ensure_common_biallelic_snps() {
   local output_vcf=$2
   local min_af=$3
   if [[ -f "${output_vcf}" && -f "${output_vcf}.tbi" ]]; then
-    return
+    if [[ $(count_vcf_records "${output_vcf}") -gt 0 ]]; then
+      return
+    fi
+    log "Regenerating empty common SNP resource ${output_vcf}"
+    rm -f "${output_vcf}" "${output_vcf}.tbi" "${output_vcf}.idx" "${output_vcf}.csi"
   fi
   log "Deriving common biallelic SNP set from ${source_vcf}"
   if command -v bcftools >/dev/null 2>&1; then
     bcftools view \
-      --min-ac 1 \
       -m2 \
       -M2 \
       -v snps \
@@ -138,7 +158,6 @@ ensure_common_biallelic_snps() {
       -w "${PROJECT_DIR}" \
       broadinstitute/gatk:4.7.0.0 \
       bcftools view \
-      --min-ac 1 \
       -m2 \
       -M2 \
       -v snps \
@@ -150,6 +169,52 @@ ensure_common_biallelic_snps() {
     fail "Unable to derive common biallelic SNPs. Install bcftools or provide Docker."
   fi
   ensure_tabix_index "${output_vcf}"
+  if [[ $(count_vcf_records "${output_vcf}") -eq 0 ]]; then
+    fail "Derived common SNP resource is empty: ${output_vcf}. Check the bcftools filter and source VCF."
+  fi
+}
+
+ensure_cfsnv_blocked_positions() {
+  local source_vcf=$1
+  local targets_bed=$2
+  local output_vcf=$3
+  if [[ -f "${output_vcf}" && -f "${output_vcf}.tbi" ]]; then
+    if [[ $(count_vcf_records "${output_vcf}") -gt 0 ]]; then
+      return
+    fi
+    log "Regenerating empty cfSNV blocked-position resource ${output_vcf}"
+    rm -f "${output_vcf}" "${output_vcf}.tbi" "${output_vcf}.idx" "${output_vcf}.csi"
+  fi
+  log "Deriving cfSNV blocked-position blacklist from ${source_vcf} on targets ${targets_bed}"
+  if command -v bcftools >/dev/null 2>&1; then
+    bcftools view \
+      -R "${targets_bed}" \
+      -m2 \
+      -M2 \
+      -v snps \
+      -Oz \
+      -o "${output_vcf}" \
+      "${source_vcf}"
+  elif command -v docker >/dev/null 2>&1; then
+    docker run --rm \
+      -v "${PROJECT_DIR}:${PROJECT_DIR}" \
+      -w "${PROJECT_DIR}" \
+      broadinstitute/gatk:4.7.0.0 \
+      bcftools view \
+      -R "${targets_bed}" \
+      -m2 \
+      -M2 \
+      -v snps \
+      -Oz \
+      -o "${output_vcf}" \
+      "${source_vcf}"
+  else
+    fail "Unable to derive cfSNV blocked positions. Install bcftools or provide Docker."
+  fi
+  ensure_tabix_index "${output_vcf}"
+  if [[ $(count_vcf_records "${output_vcf}") -eq 0 ]]; then
+    fail "Derived cfSNV blocked-position resource is empty: ${output_vcf}. Check the target BED and source VCF."
+  fi
 }
 
 ensure_vep_cache() {
@@ -210,7 +275,7 @@ main() {
 
   local fasta_path fasta_index_path dict_path germline_path pon_path vep_cache_dir vep_cache_url vep_archive
   local ann_census ann_hotspots ann_coords ann_arms targets_bed interval_list callable_regions
-  local bwa_prefix common_path common_min_af sig_volume sig_genome
+  local bwa_prefix common_path common_min_af cfsnv_blocked_path sig_volume sig_genome
 
   fasta_path=$(yaml_get assets.fasta.path)
   fasta_index_path=$(yaml_get assets.fasta_index.path)
@@ -230,11 +295,13 @@ main() {
   bwa_prefix=$(yaml_get derived.bwa_mem2_index.prefix)
   common_path=$(yaml_get derived.common_biallelic_snps.path)
   common_min_af=$(yaml_get derived.common_biallelic_snps.min_af)
+  cfsnv_blocked_path=$(yaml_get derived.cfsnv_blocked_positions.path)
   sig_volume=$(yaml_get derived.sigprofiler.volume_dir)
   sig_genome=$(yaml_get derived.sigprofiler.genome_build)
 
   ensure_dir "${PROJECT_DIR}/references/GRCh38/fasta"
   ensure_dir "${PROJECT_DIR}/references/GRCh38/gatk"
+  ensure_dir "${PROJECT_DIR}/references/GRCh38/cfsnv"
   ensure_dir "${PROJECT_DIR}/references/GRCh38/intervals"
   ensure_dir "${PROJECT_DIR}/references/GRCh38/annotations"
   ensure_dir "${PROJECT_DIR}/references/GRCh38/vep/cache"
@@ -261,6 +328,7 @@ main() {
   ensure_tabix_index "${PROJECT_DIR}/${pon_path}"
   ensure_bwa_index "${PROJECT_DIR}/${fasta_path}" "${PROJECT_DIR}/${bwa_prefix}"
   ensure_common_biallelic_snps "${PROJECT_DIR}/${germline_path}" "${PROJECT_DIR}/${common_path}" "${common_min_af}"
+  ensure_cfsnv_blocked_positions "${PROJECT_DIR}/${common_path}" "${PROJECT_DIR}/${targets_bed}" "${PROJECT_DIR}/${cfsnv_blocked_path}"
   ensure_vep_cache "${PROJECT_DIR}/${vep_cache_dir}" "${vep_cache_url}" "${vep_archive}"
   ensure_sigprofiler_assets "${sig_genome}" "${PROJECT_DIR}/${sig_volume}"
   emit_manifest
