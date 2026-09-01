@@ -161,11 +161,11 @@ workflow {
 
         fastq_validated = FASTQ_VALIDATE(sample_fastqs)
         fastqc_inputs = fastq_validated.map { meta, validation_tsv, r1, r2, bait_bed ->
-            tuple(meta, r1, r2, bait_bed)
+            tuple(meta, r1, r2)
         }
         fastqc_results = FASTQC(fastqc_inputs)
 
-        umi_template_trim_inputs = fastqc_results.map { meta, r1_html, r1_zip, r2_html, r2_zip, r1, r2, bait_bed ->
+        umi_template_trim_inputs = fastq_validated.map { meta, validation_tsv, r1, r2, bait_bed ->
             tuple(meta, r1, r2, bait_bed, ctdna_read_structure_r1, ctdna_read_structure_r2)
         }
         template_trimmed = UMI_TEMPLATE_TRIM(umi_template_trim_inputs)
@@ -200,7 +200,7 @@ workflow {
         }
         cfsnv_cfdnaprep = CFSNV_CFDNA_PREP(cfsnv_cfdnaprep_inputs)
 
-        consensus_inputs = fastqc_results.map { meta, r1_html, r1_zip, r2_html, r2_zip, r1, r2, bait_bed ->
+        consensus_inputs = fastq_validated.map { meta, validation_tsv, r1, r2, bait_bed ->
             tuple(meta, r1, r2, bait_bed, reference_path.toString(), reference_fasta_path, reference_fasta_index_path, reference_fasta_dict_path, reference_bwa_index_0123, reference_bwa_index_amb, reference_bwa_index_ann, reference_bwa_index_bwt, reference_bwa_index_pac, ctdna_umi_tag_name, ctdna_read_structure_r1, ctdna_read_structure_r2, ctdna_min_family_size, ctdna_error_rate_pre_umi, ctdna_error_rate_post_umi)
         }
         consensus_outputs = UMI_GROUP_CONSENSUS(consensus_inputs)
@@ -280,11 +280,11 @@ workflow {
 
         fastq_validated = FASTQ_VALIDATE(sample_fastqs)
         fastqc_inputs = fastq_validated.map { meta, validation_tsv, r1, r2, bait_bed ->
-            tuple(meta, r1, r2, bait_bed)
+            tuple(meta, r1, r2)
         }
         fastqc_results = FASTQC(fastqc_inputs)
 
-        align_inputs = fastqc_results.map { meta, r1_html, r1_zip, r2_html, r2_zip, r1, r2, bait_bed ->
+        align_inputs = fastq_validated.map { meta, validation_tsv, r1, r2, bait_bed ->
             tuple(meta, r1, r2, bait_bed, reference_path.toString(), reference_fasta_path, reference_bwa_index_0123, reference_bwa_index_amb, reference_bwa_index_ann, reference_bwa_index_bwt, reference_bwa_index_pac)
         }
         aligned = ALIGN_BWA_MEM2(align_inputs)

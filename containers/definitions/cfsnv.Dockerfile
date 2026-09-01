@@ -2,7 +2,7 @@ FROM mambaorg/micromamba:2.3.2
 
 USER root
 
-RUN micromamba install -y -n base -c conda-forge openjdk=17 \
+RUN micromamba install -y -n base -c conda-forge openjdk=8 \
     && micromamba clean --all --yes
 
 RUN micromamba create -y -n cfsnv -c conda-forge -c bioconda \

@@ -92,10 +92,17 @@ class CtDnaWorkflowShapeTests(unittest.TestCase):
     def test_main_routes_trimmed_fastqs_only_to_cfsnv_path(self) -> None:
         workflow_text = (REPO_ROOT / "main.nf").read_text(encoding="utf-8")
         self.assertIn("template_trimmed = UMI_TEMPLATE_TRIM", workflow_text)
-        self.assertIn("consensus_inputs = fastqc_results.map", workflow_text)
+        self.assertIn("fastqc_results = FASTQC(fastqc_inputs)", workflow_text)
+        self.assertIn("consensus_inputs = fastq_validated.map", workflow_text)
         self.assertIn("ctdna_read_structure_r1", workflow_text)
         self.assertIn("ctdna_read_structure_r2", workflow_text)
         self.assertIn("tuple(meta, r1, r2, bait_bed, reference_path.toString(), reference_fasta_path, reference_fasta_index_path, reference_fasta_dict_path", workflow_text)
+
+    def test_fastqc_module_only_consumes_reads_and_emits_qc_artifacts(self) -> None:
+        module_text = (REPO_ROOT / "modules" / "fastqc" / "main.nf").read_text(encoding="utf-8")
+        self.assertIn("tuple val(meta), path(r1), path(r2)", module_text)
+        self.assertNotIn("path(bait_bed)", module_text)
+        self.assertIn('tuple val(meta), path("${meta.sample_id}_R1_fastqc.html"), path("${meta.sample_id}_R1_fastqc.zip"), path("${meta.sample_id}_R2_fastqc.html"), path("${meta.sample_id}_R2_fastqc.zip")', module_text)
 
     def test_early_immutable_steps_use_deep_cache(self) -> None:
         validate_samplesheet_text = (REPO_ROOT / "modules" / "validate_samplesheet" / "main.nf").read_text(encoding="utf-8")

@@ -5,10 +5,10 @@ process FASTQC {
     container { params.qc_container }
 
     input:
-    tuple val(meta), path(r1), path(r2), path(bait_bed)
+    tuple val(meta), path(r1), path(r2)
 
     output:
-    tuple val(meta), path("${meta.sample_id}_R1_fastqc.html"), path("${meta.sample_id}_R1_fastqc.zip"), path("${meta.sample_id}_R2_fastqc.html"), path("${meta.sample_id}_R2_fastqc.zip"), path(r1), path(r2), path(bait_bed)
+    tuple val(meta), path("${meta.sample_id}_R1_fastqc.html"), path("${meta.sample_id}_R1_fastqc.zip"), path("${meta.sample_id}_R2_fastqc.html"), path("${meta.sample_id}_R2_fastqc.zip")
 
     script:
     """

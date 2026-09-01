@@ -23,10 +23,40 @@ ensure_writable_cfsnv_library <- function() {
 
   .libPaths(unique(c(lib_root, .libPaths())))
   suppressPackageStartupMessages(library("cfSNV", lib.loc = lib_root, character.only = TRUE))
-  invisible(NULL)
+  invisible(target_pkg)
 }
 
-ensure_writable_cfsnv_library()
+configure_cfsnv_tmpdir <- function(package_root, tmpdir) {
+  if (is.null(package_root) || !nzchar(package_root)) {
+    return(invisible(NULL))
+  }
+
+  if (.Platform$OS.type == "windows") {
+    stop("cfSNV wrapper requires Unix-style symlink support for tmpdir configuration")
+  }
+
+  dir.create(tmpdir, showWarnings = FALSE, recursive = TRUE)
+  extdata_dir <- file.path(package_root, "extdata")
+  dir.create(extdata_dir, showWarnings = FALSE, recursive = TRUE)
+  package_tmpdir <- file.path(extdata_dir, "tmp")
+  if (file.exists(package_tmpdir) || dir.exists(package_tmpdir) || nzchar(Sys.readlink(package_tmpdir))) {
+    unlink(package_tmpdir, recursive = TRUE, force = TRUE)
+  }
+
+  linked <- tryCatch(
+    isTRUE(file.symlink(tmpdir, package_tmpdir)),
+    warning = function(...) FALSE,
+    error = function(...) FALSE
+  )
+  resolved_link <- Sys.readlink(package_tmpdir)
+  if (!linked || !nzchar(resolved_link) || normalizePath(resolved_link, mustWork = FALSE) != normalizePath(tmpdir, mustWork = FALSE)) {
+    stop(sprintf("failed to bind cfSNV extdata tmpdir %s to %s", package_tmpdir, tmpdir))
+  }
+
+  invisible(package_tmpdir)
+}
+
+cfsnv_package_root <- ensure_writable_cfsnv_library()
 
 parse_args <- function(argv) {
   if (length(argv) == 0) {
@@ -183,6 +213,7 @@ run_stdprep <- function(args) {
   dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
   tmpdir <- Sys.getenv("TMPDIR", unset = file.path(output_dir, "tmp"))
   dir.create(tmpdir, showWarnings = FALSE, recursive = TRUE)
+  configure_cfsnv_tmpdir(cfsnv_package_root, tmpdir)
   cfSNV::getbam_align(
     fastq1 = require_arg(args, "fastq1"),
     fastq2 = require_arg(args, "fastq2"),
@@ -204,6 +235,7 @@ run_cfdnaprep <- function(args) {
   dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
   tmpdir <- Sys.getenv("TMPDIR", unset = file.path(output_dir, "tmp"))
   dir.create(tmpdir, showWarnings = FALSE, recursive = TRUE)
+  configure_cfsnv_tmpdir(cfsnv_package_root, tmpdir)
   cfSNV::getbam_align_after_merge(
     fastq1 = require_arg(args, "fastq1"),
     fastq2 = require_arg(args, "fastq2"),
