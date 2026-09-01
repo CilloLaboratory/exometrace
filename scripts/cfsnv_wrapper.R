@@ -254,6 +254,11 @@ run_cfdnaprep <- function(args) {
 }
 
 run_detectmuts <- function(args) {
+  output_dir <- dirname(normalizePath(require_arg(args, "output"), mustWork = FALSE))
+  dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
+  tmpdir <- Sys.getenv("TMPDIR", unset = file.path(output_dir, "tmp"))
+  dir.create(tmpdir, showWarnings = FALSE, recursive = TRUE)
+  configure_cfsnv_tmpdir(cfsnv_package_root, tmpdir)
   results <- cfSNV::variant_calling(
     plasma.unmerged = require_arg(args, "tumor_bam"),
     normal = require_arg(args, "normal_bam"),

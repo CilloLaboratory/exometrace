@@ -36,6 +36,10 @@ class CfSnvWrapperInterfaceTests(unittest.TestCase):
         self.assertIn("--snp-database ${snp_database}", module_text)
         self.assertIn("--min-hold-support ${min_hold_support}", module_text)
         self.assertIn("--min-pass-support ${min_pass_support}", module_text)
+        self.assertIn('export TMPDIR="\\$PWD/tmp"', module_text)
+        self.assertIn('export CFSNV_R_LIB_ROOT="\\$PWD/r_libs"', module_text)
+        self.assertIn('export CFSNV_JAVA="/opt/conda/bin/java"', module_text)
+        self.assertIn('export CFSNV_PICARD_JAR="/usr/local/share/cfsnv-tools/picard.jar"', module_text)
 
     def test_main_passes_common_snps_and_hold_thresholds_to_cfsnv(self) -> None:
         workflow_text = (REPO_ROOT / "main.nf").read_text(encoding="utf-8")
@@ -79,6 +83,7 @@ class CfSnvWrapperInterfaceTests(unittest.TestCase):
         self.assertIn('resolved_link <- Sys.readlink(package_tmpdir)', wrapper_text)
         self.assertIn('stop(sprintf("failed to bind cfSNV extdata tmpdir %s to %s", package_tmpdir, tmpdir))', wrapper_text)
         self.assertIn('configure_cfsnv_tmpdir(cfsnv_package_root, tmpdir)', wrapper_text)
+        self.assertIn('output_dir <- dirname(normalizePath(require_arg(args, "output"), mustWork = FALSE))', wrapper_text)
         self.assertIn('resolve_java_path <- function()', wrapper_text)
         self.assertIn('Sys.getenv("JAVA_HOME", "")', wrapper_text)
         self.assertIn('tool_path("java", default_paths = c("/opt/conda/bin/java", "/usr/bin/java"))', wrapper_text)
