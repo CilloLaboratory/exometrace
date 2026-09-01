@@ -41,7 +41,7 @@ class CfSnvWrapperInterfaceTests(unittest.TestCase):
         workflow_text = (REPO_ROOT / "main.nf").read_text(encoding="utf-8")
         self.assertIn("ctdna_min_hold = readConfigValue(pipeline_config_path, 'ctdna.cfsnv.min_hold')", workflow_text)
         self.assertIn("reference_fasta_path, reference_fasta_index_path, reference_fasta_dict_path", workflow_text)
-        self.assertIn("reference_bwa_index_0123, reference_bwa_index_amb, reference_bwa_index_ann, reference_bwa_index_bwt, reference_bwa_index_pac", workflow_text)
+        self.assertIn("reference_bwa_index_amb, reference_bwa_index_ann, reference_bwa_classic_bwt, reference_bwa_index_pac, reference_bwa_classic_sa", workflow_text)
         self.assertIn("common_snps_path, common_snps_index_path", workflow_text)
         self.assertIn("ctdna_blocked_positions_vcf_path, ctdna_blocked_positions_index_path, ctdna_min_hold, ctdna_min_pass", workflow_text)
 
@@ -52,7 +52,8 @@ class CfSnvWrapperInterfaceTests(unittest.TestCase):
         self.assertIn("micromamba install -y -n base -c conda-forge openjdk=8", dockerfile)
         self.assertIn("boost-cpp", dockerfile)
         self.assertIn("GenomeAnalysisTK-3.8-1-0-gf15c1c3ef.tar.bz2", dockerfile)
-        self.assertIn("picard-2.18.4.jar", dockerfile)
+        self.assertIn("releases/download/2.18.4/picard.jar", dockerfile)
+        self.assertIn("org/broadinstitute/barclay/argparser/CommandLineProgramProperties.class", dockerfile)
         self.assertIn("cfSNV_0.99.0.tar.gz", dockerfile)
         self.assertIn("ENV JAVA_HOME=/opt/conda", dockerfile)
 

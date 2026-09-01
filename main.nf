@@ -89,6 +89,8 @@ workflow {
     reference_bwa_index_ann = file("${reference_fasta}.ann", checkIfExists: true)
     reference_bwa_index_bwt = file("${reference_fasta}.bwt.2bit.64", checkIfExists: true)
     reference_bwa_index_pac = file("${reference_fasta}.pac", checkIfExists: true)
+    reference_bwa_classic_bwt = file("${reference_fasta}.bwt", checkIfExists: true)
+    reference_bwa_classic_sa = file("${reference_fasta}.sa", checkIfExists: true)
     target_intervals = readConfigValue(reference_path.toString(), 'intervals.interval_list')
     target_intervals_path = file(target_intervals, checkIfExists: true)
     germline_resource = readConfigValue(reference_path.toString(), 'gatk.germline_resource')
@@ -196,12 +198,12 @@ workflow {
             }
 
         cfsnv_stdprep_inputs = ctdna_pairs.map { meta, plasma_r1, plasma_r2, wbc_r1, wbc_r2, bait_bed, plasma_template_trim_qc, wbc_template_trim_qc ->
-            tuple(meta, plasma_r1, plasma_r2, wbc_r1, wbc_r2, bait_bed, reference_path.toString(), reference_fasta_path, reference_fasta_index_path, reference_fasta_dict_path, reference_bwa_index_0123, reference_bwa_index_amb, reference_bwa_index_ann, reference_bwa_index_bwt, reference_bwa_index_pac, common_snps_path, common_snps_index_path)
+            tuple(meta, plasma_r1, plasma_r2, wbc_r1, wbc_r2, bait_bed, reference_path.toString(), reference_fasta_path, reference_fasta_index_path, reference_fasta_dict_path, reference_bwa_index_amb, reference_bwa_index_ann, reference_bwa_classic_bwt, reference_bwa_index_pac, reference_bwa_classic_sa, common_snps_path, common_snps_index_path)
         }
         cfsnv_stdprep = CFSNV_STD_PREP(cfsnv_stdprep_inputs)
 
         cfsnv_cfdnaprep_inputs = ctdna_pairs.map { meta, plasma_r1, plasma_r2, wbc_r1, wbc_r2, bait_bed, plasma_template_trim_qc, wbc_template_trim_qc ->
-            tuple(meta, plasma_r1, plasma_r2, bait_bed, reference_path.toString(), reference_fasta_path, reference_fasta_index_path, reference_fasta_dict_path, reference_bwa_index_0123, reference_bwa_index_amb, reference_bwa_index_ann, reference_bwa_index_bwt, reference_bwa_index_pac, common_snps_path, common_snps_index_path)
+            tuple(meta, plasma_r1, plasma_r2, bait_bed, reference_path.toString(), reference_fasta_path, reference_fasta_index_path, reference_fasta_dict_path, reference_bwa_index_amb, reference_bwa_index_ann, reference_bwa_classic_bwt, reference_bwa_index_pac, reference_bwa_classic_sa, common_snps_path, common_snps_index_path)
         }
         cfsnv_cfdnaprep = CFSNV_CFDNA_PREP(cfsnv_cfdnaprep_inputs)
 

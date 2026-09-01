@@ -61,7 +61,7 @@ class ReferenceValidationTests(unittest.TestCase):
         write_file(fasta, ">chr1\nACGT\n")
         write_file(ref_root / "fasta" / "GRCh38.fa.fai")
         write_file(ref_root / "fasta" / "GRCh38.dict")
-        for suffix in [".0123", ".amb", ".ann", ".bwt.2bit.64", ".pac"]:
+        for suffix in [".0123", ".amb", ".ann", ".bwt.2bit.64", ".pac", ".bwt", ".sa"]:
             write_file(Path(f"{fasta}{suffix}"))
         write_file(ref_root / "intervals/exome_targets.bed", "\n".join(f"chr1\t{i}\t{i+1}" for i in range(20)) + "\n")
         write_file(
@@ -117,6 +117,25 @@ class ReferenceValidationTests(unittest.TestCase):
             self.populate_valid_tree(root)
             (root / "references" / "GRCh38" / "fasta" / "GRCh38.fa.pac").unlink()
             self.assertEqual(self.run_validator(config), 1)
+
+    def test_ctdna_validator_requires_classic_bwa_sidecars(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            root = Path(tempdir)
+            config = self.build_config(root)
+            self.populate_valid_tree(root)
+            config.write_text(
+                config.read_text(encoding="utf-8")
+                + "cfsnv:\n"
+                + "  blocked_positions_vcf: references/GRCh38/cfsnv/blocked_positions.vcf.gz\n"
+                + "  blocked_positions_index: references/GRCh38/cfsnv/blocked_positions.vcf.gz.tbi\n",
+                encoding="utf-8",
+            )
+            write_file(root / "references" / "GRCh38" / "cfsnv" / "blocked_positions.vcf.gz")
+            write_file(root / "references" / "GRCh38" / "cfsnv" / "blocked_positions.vcf.gz.tbi")
+            pipeline_config = root / "config" / "default.yaml"
+            pipeline_config.write_text("analysis:\n  mode: ctdna_umi\n", encoding="utf-8")
+            (root / "references" / "GRCh38" / "fasta" / "GRCh38.fa.sa").unlink()
+            self.assertEqual(self.run_validator_with_pipeline(config, pipeline_config), 1)
 
     def test_validator_requires_populated_vep_cache(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:

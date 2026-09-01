@@ -12,6 +12,7 @@ import yaml
 
 
 BWA_MEM2_INDEX_SUFFIXES = [".0123", ".amb", ".ann", ".bwt.2bit.64", ".pac"]
+BWA_CLASSIC_INDEX_SUFFIXES = [".amb", ".ann", ".bwt", ".pac", ".sa"]
 SIGPROFILER_MARKERS = [
     "tsb/GRCh38",
     "references/chromosomes/transcripts/GRCh38",
@@ -68,11 +69,14 @@ def count_data_lines(path: Path) -> int:
         return sum(1 for line in handle if line.strip() and not line.startswith("#"))
 
 
-def extra_requirements(label: str, path: Path) -> list[tuple[str, Path, str]]:
+def extra_requirements(label: str, path: Path, analysis_mode: str) -> list[tuple[str, Path, str]]:
     checks: list[tuple[str, Path, str]] = []
     if label == "reference.bwa_index_prefix":
         for suffix in BWA_MEM2_INDEX_SUFFIXES:
             checks.append((f"{label}{suffix}", Path(f"{path}{suffix}"), "file"))
+        if analysis_mode == "ctdna_umi":
+            for suffix in BWA_CLASSIC_INDEX_SUFFIXES:
+                checks.append((f"{label}{suffix}", Path(f"{path}{suffix}"), "file"))
     if label.startswith("gatk.") and path.suffixes[-2:] == [".vcf", ".gz"]:
         checks.append((f"{label}.index", Path(f"{path}.tbi"), "file_or_alt_index"))
     if label == "vep.cache_dir":
@@ -123,6 +127,10 @@ def main() -> int:
         with args.pipeline_config.open(encoding="utf-8") as handle:
             pipeline_config = yaml.safe_load(handle)
 
+    analysis_mode = "tumor_normal_wes"
+    if pipeline_config:
+        analysis_mode = get_nested(pipeline_config, "analysis.mode")
+
     missing: list[str] = []
     manifest_rows: list[tuple[str, Path, str, int | str]] = []
 
@@ -134,7 +142,7 @@ def main() -> int:
         checksum = sha256sum(path) if path.is_file() else "DIRECTORY"
         size = path.stat().st_size if path.is_file() else 0
         manifest_rows.append((label, path, checksum, size))
-        for extra_label, extra_path, mode in extra_requirements(label, path):
+        for extra_label, extra_path, mode in extra_requirements(label, path, analysis_mode):
             if mode == "file":
                 if not extra_path.exists():
                     missing.append(f"{extra_label}: {extra_path}")
@@ -163,9 +171,6 @@ def main() -> int:
                     missing.append(f"{extra_label}: expected at least {minimum} non-header lines in {raw_path}")
                     continue
 
-    analysis_mode = "tumor_normal_wes"
-    if pipeline_config:
-        analysis_mode = get_nested(pipeline_config, "analysis.mode")
     if analysis_mode == "ctdna_umi":
         for label in ("cfsnv.blocked_positions_vcf", "cfsnv.blocked_positions_index"):
             raw_path = get_nested(config, label)

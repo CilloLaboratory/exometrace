@@ -33,7 +33,9 @@ RUN python -m pip install --no-cache-dir \
 
 RUN mkdir -p /usr/local/share/cfsnv-tools /opt/gatk3 \
     && curl -fsSL -o /usr/local/share/cfsnv-tools/picard.jar \
-      https://repo1.maven.org/maven2/com/github/broadinstitute/picard/2.18.4/picard-2.18.4.jar \
+      https://github.com/broadinstitute/picard/releases/download/2.18.4/picard.jar \
+    && /opt/conda/bin/jar tf /usr/local/share/cfsnv-tools/picard.jar \
+      | grep -q 'org/broadinstitute/barclay/argparser/CommandLineProgramProperties.class' \
     && curl -fsSL -o /tmp/GenomeAnalysisTK-3.8-1-0-gf15c1c3ef.tar.bz2 \
       https://storage.googleapis.com/gatk-software/package-archive/gatk/GenomeAnalysisTK-3.8-1-0-gf15c1c3ef.tar.bz2 \
     && tar -xjf /tmp/GenomeAnalysisTK-3.8-1-0-gf15c1c3ef.tar.bz2 -C /opt/gatk3 --strip-components=1 \
