@@ -7,7 +7,7 @@ process FASTQ_VALIDATE {
     tuple val(meta), path(r1), path(r2), path(bait_bed)
 
     output:
-    tuple val(meta), path("${meta.sample_id}.fastq_validation.tsv"), path(r1), path(r2), path(bait_bed)
+    tuple val(meta), path("${meta.sample_id}.fastq_validation.tsv")
 
     script:
     """

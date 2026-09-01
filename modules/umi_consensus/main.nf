@@ -7,7 +7,7 @@ process UMI_GROUP_CONSENSUS {
     tuple val(meta), path(r1), path(r2), path(bait_bed), val(reference_config), path(ref_fasta), path(ref_fasta_fai), path(ref_fasta_dict), path(ref_fasta_0123), path(ref_fasta_amb), path(ref_fasta_ann), path(ref_fasta_bwt), path(ref_fasta_pac), val(tag_name), val(read_structure_r1), val(read_structure_r2), val(min_family_size), val(error_rate_pre_umi), val(error_rate_post_umi)
 
     output:
-    tuple val(meta), path("${meta.sample_id}.consensus.bam"), path("${meta.sample_id}.consensus.bam.bai"), path("${meta.sample_id}.umi_qc.tsv"), path(bait_bed), val(reference_config)
+    tuple val(meta), path("${meta.sample_id}.consensus.bam"), path("${meta.sample_id}.consensus.bam.bai"), path("${meta.sample_id}.umi_qc.tsv")
 
     script:
     def fgbio_heap_gb = Math.max(4, task.memory.toGiga().intValue() - 4)

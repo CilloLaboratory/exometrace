@@ -7,7 +7,7 @@ process UMI_TEMPLATE_TRIM {
     tuple val(meta), path(r1), path(r2), path(bait_bed), val(read_structure_r1), val(read_structure_r2)
 
     output:
-    tuple val(meta), path("${meta.sample_id}.trimmed_R1.fastq.gz"), path("${meta.sample_id}.trimmed_R2.fastq.gz"), path("${meta.sample_id}.template_trim.tsv"), path(bait_bed)
+    tuple val(meta), path("${meta.sample_id}.trimmed_R1.fastq.gz"), path("${meta.sample_id}.trimmed_R2.fastq.gz"), path("${meta.sample_id}.template_trim.tsv")
 
     script:
     """

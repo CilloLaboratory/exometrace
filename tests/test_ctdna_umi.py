@@ -92,8 +92,12 @@ class CtDnaWorkflowShapeTests(unittest.TestCase):
     def test_main_routes_trimmed_fastqs_only_to_cfsnv_path(self) -> None:
         workflow_text = (REPO_ROOT / "main.nf").read_text(encoding="utf-8")
         self.assertIn("template_trimmed = UMI_TEMPLATE_TRIM", workflow_text)
+        self.assertIn("fastq_validations = FASTQ_VALIDATE(sample_fastqs)", workflow_text)
+        self.assertIn("validated_fastqs = sample_fastqs.join(fastq_validations)", workflow_text)
+        self.assertIn("bait_beds_by_sample = validated_fastqs.map", workflow_text)
+        self.assertIn(".join(bait_beds_by_sample)", workflow_text)
         self.assertIn("fastqc_results = FASTQC(fastqc_inputs)", workflow_text)
-        self.assertIn("consensus_inputs = fastq_validated.map", workflow_text)
+        self.assertIn("consensus_inputs = validated_fastqs.map", workflow_text)
         self.assertIn("ctdna_read_structure_r1", workflow_text)
         self.assertIn("ctdna_read_structure_r2", workflow_text)
         self.assertIn("tuple(meta, r1, r2, bait_bed, reference_path.toString(), reference_fasta_path, reference_fasta_index_path, reference_fasta_dict_path", workflow_text)
@@ -103,6 +107,15 @@ class CtDnaWorkflowShapeTests(unittest.TestCase):
         self.assertIn("tuple val(meta), path(r1), path(r2)", module_text)
         self.assertNotIn("path(bait_bed)", module_text)
         self.assertIn('tuple val(meta), path("${meta.sample_id}_R1_fastqc.html"), path("${meta.sample_id}_R1_fastqc.zip"), path("${meta.sample_id}_R2_fastqc.html"), path("${meta.sample_id}_R2_fastqc.zip")', module_text)
+
+    def test_umi_trim_and_consensus_modules_only_emit_owned_artifacts(self) -> None:
+        umi_trim_text = (REPO_ROOT / "modules" / "umi_extract" / "main.nf").read_text(encoding="utf-8")
+        umi_consensus_text = (REPO_ROOT / "modules" / "umi_consensus" / "main.nf").read_text(encoding="utf-8")
+
+        self.assertIn('tuple val(meta), path("${meta.sample_id}.trimmed_R1.fastq.gz"), path("${meta.sample_id}.trimmed_R2.fastq.gz"), path("${meta.sample_id}.template_trim.tsv")', umi_trim_text)
+        self.assertNotIn('path("${meta.sample_id}.template_trim.tsv"), path(bait_bed)', umi_trim_text)
+        self.assertIn('tuple val(meta), path("${meta.sample_id}.consensus.bam"), path("${meta.sample_id}.consensus.bam.bai"), path("${meta.sample_id}.umi_qc.tsv")', umi_consensus_text)
+        self.assertNotIn('path("${meta.sample_id}.umi_qc.tsv"), path(bait_bed), val(reference_config)', umi_consensus_text)
 
     def test_early_immutable_steps_use_deep_cache(self) -> None:
         validate_samplesheet_text = (REPO_ROOT / "modules" / "validate_samplesheet" / "main.nf").read_text(encoding="utf-8")
@@ -116,6 +129,11 @@ class CtDnaWorkflowShapeTests(unittest.TestCase):
         self.assertIn("cache 'deep'", fastq_validate_text)
         self.assertIn("cache 'deep'", fastqc_text)
         self.assertIn("cache 'deep'", umi_trim_text)
+
+    def test_fastq_validate_module_only_emits_validation_artifact(self) -> None:
+        module_text = (REPO_ROOT / "modules" / "fastq_validate" / "main.nf").read_text(encoding="utf-8")
+        self.assertIn('tuple val(meta), path("${meta.sample_id}.fastq_validation.tsv")', module_text)
+        self.assertNotIn('path("${meta.sample_id}.fastq_validation.tsv"), path(r1), path(r2), path(bait_bed)', module_text)
 
     def test_bwa_alignment_stages_reference_sidecars(self) -> None:
         workflow_text = (REPO_ROOT / "main.nf").read_text(encoding="utf-8")
