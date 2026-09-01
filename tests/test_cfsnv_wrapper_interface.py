@@ -89,8 +89,26 @@ class CfSnvWrapperInterfaceTests(unittest.TestCase):
         self.assertIn('tool_path("java", default_paths = c("/opt/conda/bin/java", "/usr/bin/java"))', wrapper_text)
         self.assertIn('resolve_picard_path <- function()', wrapper_text)
         self.assertIn('resolve_gatk3_path <- function()', wrapper_text)
+        self.assertIn('require_existing_path <- function(path, label)', wrapper_text)
+        self.assertIn('stage_cfsnv_input_file <- function(source_path, target_path)', wrapper_text)
+        self.assertIn('stage_cfsnv_detectmuts_inputs <- function(tmpdir, sample_id, tumor_bam, normal_bam, extended_bam, not_combined_bam)', wrapper_text)
+        self.assertIn('sprintf("%s.paired-reads.bam", sample_id)', wrapper_text)
+        self.assertIn('sprintf("%s.normal-blood.bam", sample_id)', wrapper_text)
+        self.assertIn('configure_cfsnv_tmpdir(cfsnv_package_root, tmpdir)', wrapper_text)
+        self.assertIn('stage_cfsnv_detectmuts_inputs(', wrapper_text)
         self.assertIn('default_paths = c("/usr/local/share/cfsnv-tools/picard.jar")', wrapper_text)
         self.assertIn('default_paths = c("/usr/local/share/cfsnv-tools/GenomeAnalysisTK.jar", "/opt/gatk3/GenomeAnalysisTK.jar")', wrapper_text)
+
+    def test_detectmuts_module_exports_gatk3_path(self) -> None:
+        module_text = (REPO_ROOT / "modules" / "ctdna_mutect2" / "main.nf").read_text(encoding="utf-8")
+        self.assertIn('export CFSNV_GATK_JAR="/usr/local/share/cfsnv-tools/GenomeAnalysisTK.jar"', module_text)
+
+    def test_cfsnv_dockerfile_pins_ml_stack_to_upstream_supported_versions(self) -> None:
+        dockerfile = (REPO_ROOT / "containers" / "definitions" / "cfsnv.Dockerfile").read_text(encoding="utf-8")
+        self.assertIn("numpy==1.19.5", dockerfile)
+        self.assertIn("pandas==1.1.5", dockerfile)
+        self.assertIn("scipy==1.5.4", dockerfile)
+        self.assertIn("scikit-learn==0.24.1", dockerfile)
 
 
 if __name__ == "__main__":

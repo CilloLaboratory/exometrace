@@ -26,10 +26,10 @@ RUN micromamba create -y -n cfsnv -c conda-forge -c bioconda \
 ENV PATH=/opt/conda/envs/cfsnv/bin:$PATH
 
 RUN python -m pip install --no-cache-dir \
-    numpy \
-    pandas \
-    scipy \
-    scikit-learn
+    numpy==1.19.5 \
+    pandas==1.1.5 \
+    scipy==1.5.4 \
+    scikit-learn==0.24.1
 
 RUN mkdir -p /usr/local/share/cfsnv-tools /opt/gatk3 \
     && curl -fsSL -o /usr/local/share/cfsnv-tools/picard.jar \

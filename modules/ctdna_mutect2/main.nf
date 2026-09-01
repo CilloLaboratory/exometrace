@@ -107,6 +107,7 @@ process CTDNA_CFSNV_CALL {
     export CFSNV_R_LIB_ROOT="\$PWD/r_libs"
     export CFSNV_JAVA="/opt/conda/bin/java"
     export CFSNV_PICARD_JAR="/usr/local/share/cfsnv-tools/picard.jar"
+    export CFSNV_GATK_JAR="/usr/local/share/cfsnv-tools/GenomeAnalysisTK.jar"
     Rscript ${projectDir}/scripts/cfsnv_wrapper.R DetectMuts \
       --tumor-bam ${plasma_std_bam} \
       --normal-bam ${wbc_std_bam} \

@@ -113,6 +113,14 @@ tool_path <- function(..., env = NULL, default_paths = character()) {
   stop(sprintf("required tool not found: %s", paste(known_paths[nzchar(known_paths)], collapse = ", ")))
 }
 
+require_existing_path <- function(path, label) {
+  normalized <- normalizePath(path, mustWork = FALSE)
+  if (!file.exists(normalized)) {
+    stop(sprintf("%s does not exist: %s", label, normalized))
+  }
+  normalized
+}
+
 resolve_java_path <- function() {
   explicit <- Sys.getenv("CFSNV_JAVA", "")
   if (nzchar(explicit)) {
@@ -142,6 +150,74 @@ resolve_gatk3_path <- function() {
     env = "CFSNV_GATK_JAR",
     default_paths = c("/usr/local/share/cfsnv-tools/GenomeAnalysisTK.jar", "/opt/gatk3/GenomeAnalysisTK.jar")
   )
+}
+
+stage_cfsnv_input_file <- function(source_path, target_path) {
+  dir.create(dirname(target_path), showWarnings = FALSE, recursive = TRUE)
+  if (file.exists(target_path) || nzchar(Sys.readlink(target_path))) {
+    unlink(target_path, recursive = FALSE, force = TRUE)
+  }
+
+  linked <- tryCatch(
+    isTRUE(file.symlink(source_path, target_path)),
+    warning = function(...) FALSE,
+    error = function(...) FALSE
+  )
+  if (!linked) {
+    copied <- file.copy(source_path, target_path, overwrite = TRUE)
+    if (!isTRUE(copied)) {
+      stop(sprintf("failed to stage cfSNV input %s at %s", source_path, target_path))
+    }
+  }
+}
+
+stage_cfsnv_detectmuts_inputs <- function(tmpdir, sample_id, tumor_bam, normal_bam, extended_bam, not_combined_bam) {
+  deeplearn_dir <- file.path(tmpdir, "deeplearn")
+  tumor_bam <- require_existing_path(tumor_bam, "tumor BAM")
+  normal_bam <- require_existing_path(normal_bam, "normal BAM")
+  extended_bam <- require_existing_path(extended_bam, "extended-fragment BAM")
+  not_combined_bam <- require_existing_path(not_combined_bam, "non-overlapping BAM")
+
+  aliases <- list(
+    tumor_bam = c(
+      sprintf("%s.recal.bam", sample_id),
+      sprintf("%s.paired-reads.bam", sample_id)
+    ),
+    normal_bam = c(
+      sprintf("%s.normal.recal.bam", sample_id),
+      sprintf("%s.normal-blood.bam", sample_id)
+    ),
+    extended_bam = c(
+      sprintf("%s.extendedFrags.recal.bam", sample_id),
+      sprintf("%s.paired-reads.extendedFrags.recal.bam", sample_id)
+    ),
+    not_combined_bam = c(
+      sprintf("%s.notCombined.recal.bam", sample_id),
+      sprintf("%s.paired-reads.notCombined.recal.bam", sample_id)
+    )
+  )
+  inputs <- list(
+    tumor_bam = tumor_bam,
+    normal_bam = normal_bam,
+    extended_bam = extended_bam,
+    not_combined_bam = not_combined_bam
+  )
+
+  for (label in names(aliases)) {
+    source_path <- inputs[[label]]
+    for (alias_name in aliases[[label]]) {
+      stage_cfsnv_input_file(source_path, file.path(deeplearn_dir, alias_name))
+    }
+
+    source_index <- paste0(source_path, ".bai")
+    if (file.exists(source_index)) {
+      for (alias_name in aliases[[label]]) {
+        stage_cfsnv_input_file(source_index, file.path(deeplearn_dir, paste0(alias_name, ".bai")))
+      }
+    }
+  }
+
+  invisible(deeplearn_dir)
 }
 
 read_blocked_positions <- function(path) {
@@ -259,18 +335,31 @@ run_detectmuts <- function(args) {
   tmpdir <- Sys.getenv("TMPDIR", unset = file.path(output_dir, "tmp"))
   dir.create(tmpdir, showWarnings = FALSE, recursive = TRUE)
   configure_cfsnv_tmpdir(cfsnv_package_root, tmpdir)
+  sample_id <- require_arg(args, "sample_id")
+  tumor_bam <- require_existing_path(require_arg(args, "tumor_bam"), "tumor BAM")
+  normal_bam <- require_existing_path(require_arg(args, "normal_bam"), "normal BAM")
+  extended_bam <- require_existing_path(require_arg(args, "extended_bam"), "extended-fragment BAM")
+  not_combined_bam <- require_existing_path(require_arg(args, "not_combined_bam"), "non-overlapping BAM")
+  stage_cfsnv_detectmuts_inputs(
+    tmpdir = tmpdir,
+    sample_id = sample_id,
+    tumor_bam = tumor_bam,
+    normal_bam = normal_bam,
+    extended_bam = extended_bam,
+    not_combined_bam = not_combined_bam
+  )
   results <- cfSNV::variant_calling(
-    plasma.unmerged = require_arg(args, "tumor_bam"),
-    normal = require_arg(args, "normal_bam"),
-    plasma.merged.extendedFrags = require_arg(args, "extended_bam"),
-    plasma.merge.notCombined = require_arg(args, "not_combined_bam"),
+    plasma.unmerged = tumor_bam,
+    normal = normal_bam,
+    plasma.merged.extendedFrags = extended_bam,
+    plasma.merge.notCombined = not_combined_bam,
     target.bed = require_arg(args, "targets"),
     reference = require_arg(args, "reference"),
     SNP.database = require_arg(args, "snp_database"),
     samtools.dir = tool_path("samtools"),
     picard.dir = resolve_picard_path(),
     bedtools.dir = tool_path("bedtools"),
-    sample.id = require_arg(args, "sample_id"),
+    sample.id = sample_id,
     MIN_HOLD_SUPPORT_COUNT = as.integer(require_arg(args, "min_hold_support")),
     MIN_PASS_SUPPORT_COUNT = as.integer(require_arg(args, "min_pass_support")),
     java.dir = resolve_java_path(),
