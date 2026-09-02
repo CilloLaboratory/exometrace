@@ -277,7 +277,6 @@ write_vcf <- function(variant_list, output_path, tumor_sample, normal_sample) {
     })
     writeLines(rows, con)
   }
-  close(con)
   bgzip <- tool_path("bgzip")
   tabix <- tool_path("tabix")
   system2(bgzip, c("-f", tmp_vcf))

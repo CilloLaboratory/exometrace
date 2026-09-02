@@ -17,7 +17,7 @@ process CFSNV_CFDNA_PREP {
     export CFSNV_JAVA="/opt/conda/bin/java"
     export CFSNV_PICARD_JAR="/usr/local/share/cfsnv-tools/picard.jar"
     export CFSNV_GATK_JAR="/usr/local/share/cfsnv-tools/GenomeAnalysisTK.jar"
-    Rscript ${projectDir}/scripts/cfsnv_wrapper.R cfDNAprep \
+    Rscript /usr/local/bin/cfsnv_wrapper.R cfDNAprep \
       --fastq1 ${plasma_r1} \
       --fastq2 ${plasma_r2} \
       --reference ${ref_fasta} \

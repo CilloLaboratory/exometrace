@@ -9,7 +9,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 class CfSnvWrapperInterfaceTests(unittest.TestCase):
     def test_stdprep_module_uses_r_wrapper(self) -> None:
         module_text = (REPO_ROOT / "modules" / "cfsnv_stdprep" / "main.nf").read_text(encoding="utf-8")
-        self.assertIn("Rscript ${projectDir}/scripts/cfsnv_wrapper.R STDprep", module_text)
+        self.assertIn("Rscript /usr/local/bin/cfsnv_wrapper.R STDprep", module_text)
         self.assertNotIn("cfsnv STDprep", module_text)
         self.assertIn("--snp-database ${snp_database}", module_text)
         self.assertIn('export TMPDIR="\\$PWD/tmp"', module_text)
@@ -20,7 +20,7 @@ class CfSnvWrapperInterfaceTests(unittest.TestCase):
 
     def test_cfdnaprep_module_uses_r_wrapper(self) -> None:
         module_text = (REPO_ROOT / "modules" / "cfsnv_cfdnaprep" / "main.nf").read_text(encoding="utf-8")
-        self.assertIn("Rscript ${projectDir}/scripts/cfsnv_wrapper.R cfDNAprep", module_text)
+        self.assertIn("Rscript /usr/local/bin/cfsnv_wrapper.R cfDNAprep", module_text)
         self.assertNotIn("cfsnv cfDNAprep", module_text)
         self.assertIn("--snp-database ${snp_database}", module_text)
         self.assertIn('export TMPDIR="\\$PWD/tmp"', module_text)
@@ -31,7 +31,7 @@ class CfSnvWrapperInterfaceTests(unittest.TestCase):
 
     def test_detectmuts_module_uses_r_wrapper(self) -> None:
         module_text = (REPO_ROOT / "modules" / "ctdna_mutect2" / "main.nf").read_text(encoding="utf-8")
-        self.assertIn("Rscript ${projectDir}/scripts/cfsnv_wrapper.R DetectMuts", module_text)
+        self.assertIn("Rscript /usr/local/bin/cfsnv_wrapper.R DetectMuts", module_text)
         self.assertNotIn("cfsnv DetectMuts", module_text)
         self.assertIn("--snp-database ${snp_database}", module_text)
         self.assertIn("--min-hold-support ${min_hold_support}", module_text)
@@ -60,6 +60,8 @@ class CfSnvWrapperInterfaceTests(unittest.TestCase):
         self.assertIn("org/broadinstitute/barclay/argparser/CommandLineProgramProperties.class", dockerfile)
         self.assertIn("cfSNV_0.99.0.tar.gz", dockerfile)
         self.assertIn("ENV JAVA_HOME=/opt/conda", dockerfile)
+        self.assertIn("COPY scripts/cfsnv_wrapper.R /usr/local/bin/cfsnv_wrapper.R", dockerfile)
+        self.assertIn("chmod 0755 /usr/local/bin/cfsnv_wrapper.R", dockerfile)
 
     def test_bootstrap_derives_cfsnv_blacklist_from_common_snps_and_targets(self) -> None:
         bootstrap_text = (REPO_ROOT / "scripts" / "bootstrap_references.sh").read_text(encoding="utf-8")

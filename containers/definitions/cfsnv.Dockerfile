@@ -2,6 +2,8 @@ FROM mambaorg/micromamba:2.3.2
 
 USER root
 
+COPY scripts/cfsnv_wrapper.R /usr/local/bin/cfsnv_wrapper.R
+
 RUN micromamba install -y -n base -c conda-forge openjdk=8 \
     && micromamba clean --all --yes
 
@@ -49,4 +51,5 @@ ENV JAVA_HOME=/opt/conda
 RUN curl -fsSL -o /tmp/cfSNV_0.99.0.tar.gz \
       https://github.com/jasminezhoulab/cfSNV/raw/main/cfSNV_0.99.0.tar.gz \
     && R CMD INSTALL /tmp/cfSNV_0.99.0.tar.gz \
-    && rm -f /tmp/cfSNV_0.99.0.tar.gz
+    && rm -f /tmp/cfSNV_0.99.0.tar.gz \
+    && chmod 0755 /usr/local/bin/cfsnv_wrapper.R

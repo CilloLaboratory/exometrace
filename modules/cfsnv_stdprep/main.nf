@@ -17,14 +17,14 @@ process CFSNV_STD_PREP {
     export CFSNV_JAVA="/opt/conda/bin/java"
     export CFSNV_PICARD_JAR="/usr/local/share/cfsnv-tools/picard.jar"
     export CFSNV_GATK_JAR="/usr/local/share/cfsnv-tools/GenomeAnalysisTK.jar"
-    Rscript ${projectDir}/scripts/cfsnv_wrapper.R STDprep \
+    Rscript /usr/local/bin/cfsnv_wrapper.R STDprep \
       --fastq1 ${plasma_r1} \
       --fastq2 ${plasma_r2} \
       --reference ${ref_fasta} \
       --snp-database ${snp_database} \
       --sample-id ${meta.patient_id}.tumor \
       --output-dir .
-    Rscript ${projectDir}/scripts/cfsnv_wrapper.R STDprep \
+    Rscript /usr/local/bin/cfsnv_wrapper.R STDprep \
       --fastq1 ${wbc_r1} \
       --fastq2 ${wbc_r2} \
       --reference ${ref_fasta} \
